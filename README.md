@@ -1,19 +1,15 @@
-# Hosted Apps Dashboard
+# JesterTek Docker stacks and automation
 
-A small static dashboard for quick links to JesterTek hosted services.
+This repository contains homelab Compose stacks, configuration templates, and operational scripts. The former root-level **Hosted Apps Dashboard** has been retired from source on the cleanup branch. The root of this repository is **not** a deployable Docker Compose project.
 
-## Local Preview
+## Retained components
 
-Open `index.html` directly in a browser.
+- [ARR homelab](arr-homelab/README.md): Sonarr, Radarr, Prowlarr, qBittorrent and supporting configuration templates.
+- [NMS homelab](nms-homelab/README.md): LibreNMS, Graylog, Akvorado, UniFi Network, Keep and related monitoring services.
+- [Discord redeploy automation](automation/discord-redeploy-bot/README.md): script-based service checks and redeployment helpers.
 
-## Docker
+Review the README and environment/secrets documentation **inside each stack** before deploying. Never add passwords, tokens, or live configuration secrets to Git.
 
-```bash
-docker compose up -d --build
-```
+## Cleanup note (November 7, 2026)
 
-The container publishes the dashboard at `http://localhost:8088`.
-
-## Update Links
-
-Edit the `apps` array in `app.js`.
+The old `hosted-apps` static dashboard (previously published from the repository-root Compose file on port 8088) is no longer part of the maintained source. This change does **not** stop or uninstall any already-running container, change a reverse proxy, remove persistent volumes, or alter any nested stacks. Verify runtime dependencies and stop the old `hosted-apps` service using the appropriate host-specific deployment procedure before merging a cleanup pull request.
