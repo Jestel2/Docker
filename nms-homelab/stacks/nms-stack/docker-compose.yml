@@ -1,130 +1,134 @@
+# Migration candidate; prepare and verify db-11.4 before deployment.
+name: nms-stack
 services:
-  # --- LibreNMS Database ---
   db:
-    image: mariadb:10.5
     container_name: librenms_db
-    network_mode: "host"
-    command: [
-      "mysqld",
-      "--innodb-file-per-table=1",
-      "--lower-case-table-names=1",
-      "--character-set-server=utf8mb4",
-      "--collation-server=utf8mb4_unicode_ci"
-    ]
-    volumes:
-      - ./db:/var/lib/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?set in .env}
-      - MYSQL_DATABASE=librenms
-      - MYSQL_USER=librenms
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:?set in .env}
+      MYSQL_DATABASE: librenms
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?managed runtime secret required}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?managed runtime secret required}
+      MYSQL_USER: librenms
+    image: mariadb:11.4.13@sha256:d1891ede5a559f1086f55053bb8cc1569b0298338c4d72d71725a7f74f6ba620
+    network_mode: host
     restart: always
-
-  redis:
-    image: redis:7-alpine
-    container_name: librenms_redis
-    network_mode: "host"
-    restart: always
-
-  # --- LibreNMS Main App ---
-  librenms:
-    image: librenms/librenms:latest
-    container_name: librenms
-    network_mode: "host"
     volumes:
-      - ./librenms:/data
-    depends_on:
-      - db
-      - redis
-    environment:
-      - TZ=UTC
-      - PUID=1000
-      - PGID=1000
-      # Internal DNS is bypassed in host mode; use localhost/127.0.0.1
-      - DB_HOST=127.0.0.1
-      - DB_NAME=librenms
-      - DB_USER=librenms
-      - DB_PASSWORD=${MYSQL_PASSWORD:?set in .env}
-      - REDIS_HOST=127.0.0.1
-      - CACHE_STORE=redis
-      - ENABLE_OXIDIZED=1
-      - OXIDIZED_URL=http://127.0.0.1:8888
-    restart: always
-
-  # --- Oxidized ---
-
-  oxidized:
-    image: oxidized/oxidized:latest
-    container_name: oxidized
-    network_mode: "host"
-    volumes:
-      - ./oxidized:/home/oxidized/.config/oxidized
-    restart: always
-
-  # --- Graylog Stack ---
-  mongodb:
-    profiles: ["disabled"]
-    image: mongo:5.0
-    container_name: graylog_db
-    network_mode: "host"
-    restart: always
-
-  opensearch:
-    profiles: ["disabled"]
-    image: opensearchproject/opensearch:2.11.0
-    container_name: graylog_search
-    network_mode: "host"
-    environment:
-      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
-      - "bootstrap.memory_lock=true"
-      - "discovery.type=single-node"
-      - "action.auto_create_index=false"
-      - "plugins.security.disabled=true"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - ./os_data:/usr/share/opensearch/data
-    restart: always
-
-  graylog:
-    profiles: ["disabled"]
-    image: graylog/graylog:5.2
-    container_name: graylog
-    network_mode: "host"
-    depends_on:
-      - mongodb
-      - opensearch
-    environment:
-      - GRAYLOG_ROOT_PASSWORD_SHA2=${GRAYLOG_ROOT_PASSWORD_SHA2:?set in .env}
-      - GRAYLOG_PASSWORD_SECRET=${GRAYLOG_PASSWORD_SECRET:?set in .env}
-      - GRAYLOG_HTTP_BIND_ADDRESS=0.0.0.0:9000
-      # Point to localhost due to host networking
-      - GRAYLOG_ELASTICSEARCH_HOSTS=http://127.0.0.1:9200
-      - GRAYLOG_MONGODB_URI=mongodb://127.0.0.1:27017/graylog
-    restart: always
-
-# --- LibreNMS Dispatcher ---
+    - type: bind
+      source: /opt/docker-stacks/nms-stack/db-11.4
+      target: /var/lib/mysql
+      bind:
+        create_host_path: false
+    command:
+    - mariadbd
+    - --innodb-file-per-table=1
+    - --lower-case-table-names=0
+    - --character-set-server=utf8mb4
+    - --collation-server=utf8mb4_unicode_ci
   dispatcher:
-    image: librenms/librenms:latest
     container_name: librenms_dispatcher
-    network_mode: "host"
-    volumes:
-      - ./librenms:/data
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_started
+        required: true
+      redis:
+        condition: service_started
+        required: true
     environment:
-      - TZ=UTC
-      - PUID=1000
-      - PGID=1000
-      - DB_HOST=127.0.0.1
-      - DB_NAME=librenms
-      - DB_USER=librenms
-      - DB_PASSWORD=${MYSQL_PASSWORD:?set in .env}
-      - REDIS_HOST=127.0.0.1
-      - CACHE_STORE=redis
-      - SIDECAR_DISPATCHER=1
-      - DISPATCHER_NODE_ID=dispatcher1
+      APP_URL: https://nms.jestertek.cc
+      CACHE_STORE: redis
+      DB_HOST: 127.0.0.1
+      DB_NAME: librenms
+      DB_PASSWORD: ${MYSQL_PASSWORD:?managed runtime secret required}
+      DB_USER: librenms
+      DISPATCHER_NODE_ID: dispatcher1
+      PGID: '1000'
+      PUID: '1000'
+      REDIS_HOST: 127.0.0.1
+      SESSION_SAME_SITE: none
+      SIDECAR_DISPATCHER: '1'
+      TZ: UTC
+    image: librenms/librenms:26.10.2@sha256:66f586a84355b6c80758e373aaa7c0b230284d1d22588b29b3706540041e2806
+    network_mode: host
+    restart: always
+    volumes:
+    - type: bind
+      source: /opt/docker-stacks/nms-stack/librenms
+      target: /data
+      bind:
+        create_host_path: true
+    - type: bind
+      source: /var/lib/smokeping
+      target: /data/rrd/smokeping
+      read_only: true
+      bind:
+        create_host_path: true
+    - type: bind
+      source: /opt/docker-stacks/nms-stack/librenms/plugins/SwitchLookup
+      target: /opt/librenms/app/Plugins/SwitchLookup
+      bind:
+        create_host_path: true
+  librenms:
+    container_name: librenms
+    depends_on:
+      db:
+        condition: service_started
+        required: true
+      redis:
+        condition: service_started
+        required: true
+    environment:
+      APP_TRUSTED_PROXIES: 127.0.0.1
+      APP_URL: https://nms.jestertek.cc
+      CACHE_STORE: redis
+      DB_HOST: 127.0.0.1
+      DB_NAME: librenms
+      DB_PASSWORD: ${MYSQL_PASSWORD:?managed runtime secret required}
+      DB_USER: librenms
+      ENABLE_OXIDIZED: '1'
+      OXIDIZED_URL: http://127.0.0.1:8888
+      PGID: '1000'
+      PUID: '1000'
+      REDIS_HOST: 127.0.0.1
+      SESSION_SAME_SITE: none
+      SESSION_SECURE_COOKIE: 'true'
+      TZ: UTC
+    image: librenms/librenms:26.10.2@sha256:66f586a84355b6c80758e373aaa7c0b230284d1d22588b29b3706540041e2806
+    network_mode: host
+    restart: always
+    volumes:
+    - type: bind
+      source: /opt/docker-stacks/nms-stack/librenms/composer.plugins.json
+      target: /opt/librenms/composer.plugins.json
+      bind:
+        create_host_path: true
+    - type: bind
+      source: /opt/docker-stacks/nms-stack/librenms
+      target: /data
+      bind:
+        create_host_path: true
+    - type: bind
+      source: /var/lib/smokeping
+      target: /data/rrd/smokeping
+      read_only: true
+      bind:
+        create_host_path: true
+    - type: bind
+      source: /opt/docker-stacks/nms-stack/librenms/plugins/SwitchLookup
+      target: /opt/librenms/app/Plugins/SwitchLookup
+      bind:
+        create_host_path: true
+  oxidized:
+    container_name: oxidized
+    image: oxidized/oxidized:latest
+    network_mode: host
+    restart: always
+    volumes:
+    - type: bind
+      source: /opt/docker-stacks/nms-stack/oxidized
+      target: /home/oxidized/.config/oxidized
+      bind:
+        create_host_path: true
+  redis:
+    container_name: librenms_redis
+    image: redis:7-alpine
+    network_mode: host
     restart: always
