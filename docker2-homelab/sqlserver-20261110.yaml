@@ -1,5 +1,9 @@
-# Image-only overlay for the existing devolutions-server Compose project.
-# Apply only after native backup/restore and DVLS recovery gates pass.
+# Overlay for the existing live Compose; create and populate this volume only
+# after clean SQL shutdown and verified native backup/restore gates.
 services:
   mssql:
     image: mcr.microsoft.com/mssql/server@sha256:11927f5edc5122658e90b3a80ee36e8aef779310bf771415c1d89271859c73fd
+volumes:
+  mssql_data:
+    external: true
+    name: devolutions-server_mssql_data_20261110
