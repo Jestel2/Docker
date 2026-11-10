@@ -12,6 +12,7 @@ This repository folder stores sanitized stack configuration and lightweight app 
 - Radarr behind Gluetun.
 - Prowlarr behind Gluetun.
 - FlareSolverr behind Gluetun.
+- Seerr behind Gluetun.
 
 ## Current Layout
 
@@ -19,7 +20,7 @@ This repository folder stores sanitized stack configuration and lightweight app 
 /opt/docker-stacks/arr-stack
 ```
 
-The active Compose file publishes application ports from the Gluetun container because the other services use `network_mode: "service:gluetun"`.
+The active `/opt/docker-stacks/arr-stack/compose.yaml` publishes application ports from the Gluetun container because the other services use `network_mode: "service:gluetun"`.
 
 ## Published Ports
 
@@ -28,6 +29,8 @@ The active Compose file publishes application ports from the Gluetun container b
 - `7878/tcp`: Radarr
 - `9696/tcp`: Prowlarr
 - `8191/tcp`: FlareSolverr
+- `5055/tcp`: Seerr
+- Additional live mappings preserved: `9898`, `7879`, `9697` (purpose unverified).
 
 ## Configuration Model
 
@@ -59,3 +62,7 @@ sudo rm -f /run/arr-stack.env
 ```
 
 Do not commit real VPN credentials or app API keys.
+
+## November 10 maintenance
+
+The verified live topology and reviewed image digests are in Git. Preparation does not establish production rollout; see [the maintenance runbook](docs/maintenance-20261110.md) for versions, baseline counts, checks and recovery requirements.
