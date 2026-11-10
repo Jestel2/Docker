@@ -46,7 +46,7 @@ services:
       SESSION_SAME_SITE: none
       SIDECAR_DISPATCHER: '1'
       TZ: UTC
-    image: librenms/librenms:26.10.2@sha256:66f586a84355b6c80758e373aaa7c0b230284d1d22588b29b3706540041e2806
+    image: local/librenms:26.10.2-runtimefix-20261110
     network_mode: host
     restart: always
     volumes:
@@ -91,7 +91,7 @@ services:
       SESSION_SAME_SITE: none
       SESSION_SECURE_COOKIE: 'true'
       TZ: UTC
-    image: librenms/librenms:26.10.2@sha256:66f586a84355b6c80758e373aaa7c0b230284d1d22588b29b3706540041e2806
+    image: local/librenms:26.10.2-runtimefix-20261110
     network_mode: host
     restart: always
     volumes:
