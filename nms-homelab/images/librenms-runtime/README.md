@@ -5,10 +5,11 @@ Both bundled requirement checkers still import that removed API. The image also
 creates /var/spool/cron/crontabs with mode 0644, preventing the librenms user from
 traversing the directory when cron starts PHP.
 
-Build this directory as local/librenms:26.10.2-runtimefix-20261110 on the NMS host.
+Build this directory as local/librenms:26.10.2-runtimefix-20261110-v2 on the NMS host.
 The pinned upstream image, public packaging 25.0 parser, and importlib.metadata
 replace both obsolete checks. Installed versions, transitive dependencies, markers
-and requested extras remain validated. The cron initialization keeps directory
+and requested extras remain validated. A standalone build script supports the host's legacy builder and restores
+executable permissions on both copied checkers. The cron initialization keeps directory
 mode 0755 and file mode 0644. Application, database and data paths are unchanged.
 
 After review/merge, build and run both checker commands and pip check without
