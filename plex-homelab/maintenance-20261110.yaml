@@ -1,0 +1,4 @@
+# Reviewed amd64 Plex maintenance image. Apply with the existing live Compose file.
+services:
+  plex:
+    image: plexinc/pms-docker@sha256:32dead43c01e8ff6189504ff0d048b16cf084a1dc37d8906fef8f3537d067e4d
