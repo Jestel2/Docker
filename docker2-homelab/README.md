@@ -1,0 +1,11 @@
+# Docker2 SQL Server 2022 maintenance — 2026-11-10
+
+The live stack is `/opt/docker-stacks/devolutions-server/compose.yaml`. SQL Server is Express Edition, currently 16.0.4260.1; the pinned 2022 servicing target is 16.0.4315.2. The sole user database is `dvls`, with 161 user tables. The `dvls-init` service hosts the running DVLS application and returns HTTPS 200 on port 5000; plaintext HTTP is not a useful readiness check.
+
+Before deployment, require DBCC CHECKDB and native COPY_ONLY/CHECKSUM backups of dvls, master and msdb, RESTORE VERIFYONLY, and a successful isolated dvls restore/CHECKDB with unchanged user-table count on the exact target engine. Express Edition does not support backup compression. Keep credentials in existing container/process environments; do not write or print them. Use explicit `tcp:127.0.0.1,1433` for isolated SQL queries because localhost resolution failed with network none.
+
+Compare the overlay against live rendering privately and verify the mssql service and its existing settings, ports, health check and mount. Stop only DVLS and SQL for the controlled cutover. After clean SQL shutdown, clone the complete existing SQL volume to a uniquely named maintenance volume, preserving ownership and permissions. Run the target on that new volume. Preserve the original volume and image untouched for rollback; persist only the reviewed image and new external volume mapping after readiness checks pass.
+
+Require exact SQL version, ONLINE dvls, unchanged 161-table count, DBCC CHECKDB, SQL container health, recovered DVLS HTTPS 200 and application/database connectivity before success. Rollback stops the candidate and restores the original image/volume configuration, then verifies the old SQL and DVLS gates. Preserve original data, native backups and candidate data until new normal backups are verified. Do not prune volumes or images.
+
+DNS/BIND and all unrelated Docker2 services remain online. This is an application-volume cutover; do not alter VM disks, placement, memory, networking or frozen PAN-OS certificate automation. Interactive DVLS login remains a separate client check when no authenticated user session is available.
