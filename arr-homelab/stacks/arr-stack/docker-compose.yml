@@ -1,90 +1,223 @@
+# Verified live topology, 2026-11-10. Runtime VPN credentials are supplied by the existing secret manager.
+networks:
+  default:
+    name: arr-stack_default
+    ipam: {}
 services:
-  gluetun:
-    image: qmcgaw/gluetun:latest
-    container_name: gluetun
-    restart: unless-stopped
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun
-    environment:
-      - VPN_SERVICE_PROVIDER=pia
-      - VPN_TYPE=openvpn
-      - OPENVPN_USER=${PIA_USER}
-      - OPENVPN_PASSWORD=${PIA_PASS}
-      - SERVER_REGIONS=US East
-      - DOT=off
-      - TZ=America/New_York
-      - FIREWALL_OUTBOUND_SUBNETS=10.20.60.0/24
-    volumes:
-      - /opt/docker-stacks/arr-stack/config/gluetun:/gluetun
-    ports:
-      - "8080:8080"  # qBittorrent WebUI
-      - "8989:8989"  # Sonarr
-      - "7878:7878"  # Radarr
-      - "9696:9696"  # Prowlarr
-      - "8191:8191"  # FlareSolverr
-    # network_mode omitted so this is the stack's root service
-
-  qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
-    container_name: qbittorrent
-    restart: unless-stopped
-    network_mode: "service:gluetun"
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
-      - WEBUI_PORT=8080
-    volumes:
-      - /opt/docker-stacks/arr-stack/config/qbittorrent:/config
-      - /mnt/synology-store1/Autodown/Downloads:/downloads
-
-  sonarr:
-    image: lscr.io/linuxserver/sonarr:latest
-    container_name: sonarr
-    restart: unless-stopped
-    network_mode: "service:gluetun"
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
-    volumes:
-      - /opt/docker-stacks/arr-stack/config/sonarr:/config
-      - /mnt/synology-store1/Autodown/Downloads:/downloads
-      - "/mnt/synology-store1/TV Shows:/tv"
-
-  radarr:
-    image: lscr.io/linuxserver/radarr:latest
-    container_name: radarr
-    restart: unless-stopped
-    network_mode: "service:gluetun"
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
-    volumes:
-      - /opt/docker-stacks/arr-stack/config/radarr:/config
-      - /mnt/synology-store1/Autodown/Downloads:/downloads
-      - "/mnt/synology-store1/Videos:/movies"
-
-  prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
-    container_name: prowlarr
-    restart: unless-stopped
-    network_mode: "service:gluetun"
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
-    volumes:
-      - /opt/docker-stacks/arr-stack/config/prowlarr:/config
-
   flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:latest
-    container_name: flaresolverr
     restart: unless-stopped
-    network_mode: "service:gluetun"
+    container_name: flaresolverr
     environment:
-      - LOG_LEVEL=info
-      - TZ=America/New_York
+      LOG_LEVEL: info
+      TZ: America/New_York
+    network_mode: service:gluetun
+    depends_on:
+      gluetun:
+        condition: service_healthy
+        required: true
+    image: ghcr.io/flaresolverr/flaresolverr@sha256:c80ae007ce2ccdcd217a12426e4f039ef763ff90738c808d38810c3e59323767
+  gluetun:
+    restart: unless-stopped
+    container_name: gluetun
+    cap_add:
+    - NET_ADMIN
+    devices:
+    - source: /dev/net/tun
+      target: /dev/net/tun
+      permissions: rwm
+    environment:
+      FIREWALL_OUTBOUND_SUBNETS: 10.20.60.0/24
+      OPENVPN_PASSWORD: ${PIA_PASS:?managed VPN password required}
+      OPENVPN_USER: ${PIA_USER:?managed VPN user required}
+      SERVER_REGIONS: US East
+      TZ: America/New_York
+      VPN_SERVICE_PROVIDER: pia
+      VPN_TYPE: openvpn
+    networks:
+      default: null
+    volumes:
+    - type: bind
+      source: /opt/docker-stacks/arr-stack/config/gluetun
+      target: /gluetun
+      bind: {}
+    ports:
+    - mode: ingress
+      target: 8080
+      published: '8080'
+      protocol: tcp
+    - mode: ingress
+      target: 8989
+      published: '8989'
+      protocol: tcp
+    - mode: ingress
+      target: 9898
+      published: '9898'
+      protocol: tcp
+    - mode: ingress
+      target: 7878
+      published: '7878'
+      protocol: tcp
+    - mode: ingress
+      target: 7879
+      published: '7879'
+      protocol: tcp
+    - mode: ingress
+      target: 9696
+      published: '9696'
+      protocol: tcp
+    - mode: ingress
+      target: 9697
+      published: '9697'
+      protocol: tcp
+    - mode: ingress
+      target: 8191
+      published: '8191'
+      protocol: tcp
+    - mode: ingress
+      target: 5055
+      published: '5055'
+      protocol: tcp
+    image: qmcgaw/gluetun@sha256:75df789dea20551fa973f808133a712700bf198518f9d49ed581287777508556
+  prowlarr:
+    restart: unless-stopped
+    container_name: prowlarr
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: America/New_York
+    network_mode: service:gluetun
+    volumes:
+    - type: bind
+      source: /opt/docker-stacks/arr-stack/config/prowlarr
+      target: /config
+      bind: {}
+    depends_on:
+      gluetun:
+        condition: service_healthy
+        required: true
+    image: lscr.io/linuxserver/prowlarr@sha256:431d7efebcef466e56adaa40a7a2fa2b0e85159a037b8bf465eaadbf0cf5bedf
+  qbittorrent:
+    restart: unless-stopped
+    container_name: qbittorrent
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: America/New_York
+      WEBUI_PORT: '8080'
+    network_mode: service:gluetun
+    volumes:
+    - type: bind
+      source: /mnt/Jestertek
+      target: /truenas
+      bind: {}
+    - type: bind
+      source: /opt/docker-stacks/arr-stack/config/qbittorrent
+      target: /config
+      bind: {}
+    - type: bind
+      source: /mnt/Media/Downloads
+      target: /downloads
+      bind: {}
+    depends_on:
+      gluetun:
+        condition: service_healthy
+        required: true
+    image: lscr.io/linuxserver/qbittorrent@sha256:3d4c4545d51a690a0df15a2ff99038823a88a9822df8e794526447b9afbd7384
+  radarr:
+    restart: unless-stopped
+    container_name: radarr
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: America/New_York
+    network_mode: service:gluetun
+    volumes:
+    - type: bind
+      source: /mnt/Jestertek
+      target: /truenas
+      bind: {}
+    - type: bind
+      source: /opt/docker-stacks/arr-stack/config/radarr
+      target: /config
+      bind: {}
+    - type: bind
+      source: /mnt/Media/Downloads
+      target: /downloads
+      bind: {}
+    - type: bind
+      source: /mnt/Media/Videos
+      target: /movies
+      bind: {}
+    depends_on:
+      gluetun:
+        condition: service_healthy
+        required: true
+    image: lscr.io/linuxserver/radarr@sha256:51a9ac2a9eb47afc833541e5fd6c11b86eb9f810694c22fa2429e3078e9194b2
+  seerr:
+    restart: unless-stopped
+    container_name: seerr
+    cap_drop:
+    - ALL
+    environment:
+      LOG_LEVEL: info
+      TZ: America/New_York
+    init: true
+    network_mode: service:gluetun
+    security_opt:
+    - no-new-privileges
+    volumes:
+    - type: bind
+      source: /opt/docker-stacks/arr-stack/config/seerr
+      target: /app/config
+      bind: {}
+    depends_on:
+      gluetun:
+        condition: service_healthy
+        required: true
+    healthcheck:
+      test:
+      - CMD
+      - wget
+      - --no-verbose
+      - --tries=1
+      - --spider
+      - http://127.0.0.1:5055/api/v1/settings/public
+      timeout: 3s
+      interval: 15s
+      retries: 3
+      start_period: 20s
+    image: ghcr.io/seerr-team/seerr@sha256:d8fab675b55ad293ded98fd71efcfd46054cbad9746534ae1cc4794a88c0b3be
+  sonarr:
+    restart: unless-stopped
+    container_name: sonarr
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: America/New_York
+    network_mode: service:gluetun
+    volumes:
+    - type: bind
+      source: /mnt/Jestertek
+      target: /truenas
+      bind: {}
+    - type: bind
+      source: /opt/docker-stacks/arr-stack/config/sonarr
+      target: /config
+      bind: {}
+    - type: bind
+      source: /mnt/Media/Downloads
+      target: /downloads
+      bind: {}
+    - type: bind
+      source: /mnt/Media/TV Shows
+      target: /tv
+      bind: {}
+    - type: bind
+      source: /mnt/Media/TV Shows
+      target: /data/TV Shows
+    depends_on:
+      gluetun:
+        condition: service_healthy
+        required: true
+    image: lscr.io/linuxserver/sonarr@sha256:673dc4609a5672bc8e46069c86ffcea283a86b48d34a6c93d8da8c24a1b87571
+name: arr-stack
