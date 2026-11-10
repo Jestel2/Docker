@@ -2,7 +2,8 @@
 
 The running November 10 stack used LibreNMS 26.6.1 and MariaDB 10.5.29. MariaDB 10.5
 is out of community maintenance. The selected target is LibreNMS 26.10.2 with
-MariaDB 11.4.13 LTS, pinned to the tested registry digests in Compose.
+MariaDB 11.4.13 LTS. MariaDB is pinned to its tested registry digest; LibreNMS
+uses the reviewed derived runtime image built from the pinned upstream digest.
 
 ## Live configuration preserved
 
@@ -25,6 +26,14 @@ checks under the candidate PHP 8.4.27 runtime. Test containers/networks were rem
 production data was unchanged by these tests.
 
 ## Cutover
+
+Before a first migration, build `images/librenms-runtime` as
+`local/librenms:26.10.2-runtimefix-20261110` on NMS and verify its two Python
+checkers and `pip check`. The migration preflight requires that exact image
+reference for both application services. This fixes the upstream removed
+`pkg_resources` imports and cron directory permissions. An already migrated
+host must recreate only the app and dispatcher; do not rerun the one-time
+MariaDB migration or change its database directories.
 
 Do not run ordinary Compose against an unseeded `db-11.4` directory. The long bind
 syntax has `create_host_path:false` to prevent creating an empty database path.
