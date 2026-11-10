@@ -118,7 +118,7 @@ services:
         create_host_path: true
   oxidized:
     container_name: oxidized
-    image: oxidized/oxidized:latest
+    image: oxidized/oxidized@sha256:392b33185453ad7233c3cca337c41a0569108b2c55f862ae6da6afb0ec688870
     network_mode: host
     restart: always
     volumes:
@@ -129,6 +129,15 @@ services:
         create_host_path: true
   redis:
     container_name: librenms_redis
-    image: redis:7-alpine
+    image: redis@sha256:e4ee3e03ce8f75471f40937a7c6b2b0e500390b6812fcdf5cb32c01295ded446
     network_mode: host
     restart: always
+    # Existing Redis data is explicitly retained across recreations.
+    volumes:
+    - type: volume
+      source: redis_data
+      target: /data
+volumes:
+  redis_data:
+    external: true
+    name: e64fea7c32c6421a3cff98f5cd858c17c3860bdca89e550cd9881b0b0437f2ee

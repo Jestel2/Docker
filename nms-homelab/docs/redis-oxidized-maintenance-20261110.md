@@ -1,0 +1,9 @@
+# Redis/Oxidized selective maintenance — 2026-11-10
+
+Require stable LibreNMS scheduling before this deployment: automatic heartbeat advancement at consecutive five-minute boundaries and validation beyond six minutes. Do not manually invoke schedule:run to satisfy this gate. Preserve the LibreNMS app, dispatcher, database and all unrelated containers.
+
+Redis updates from 7.4.9 to 7.4.12 within the same series. Retain its existing anonymous Docker /data volume by explicitly mapping that exact existing volume as external redis_data. Never renew anonymous volumes. Require SAVE success and persistent RDB existence before replacement, then PING, exact version, same volume identity and LibreNMS Redis/locks/poller checks. Keep the old image and RDB recovery point. Do not print cache values or credentials.
+
+Oxidized updates from 0.37.0-29-g9bcaa6c5 to 0.37.0-192-g0752afef. Upstream git-output changes require oxidized-web >=0.17; the candidate contains 0.18.1 and Puma 6.6.0, and isolated Oxidized import passed. Review upstream CHANGELOG at https://github.com/ytti/oxidized/blob/master/CHANGELOG.md. Keep the existing config/output bind, source configuration, permissions and SSH trust policy. Record config checksum, git output history metadata and node identities without printing configuration contents. Replace only Oxidized, require same five node identities, exact version and a working API, and confirm config checksum remains unchanged. Retain the original image for recovery.
+
+Apply only image selection and explicit mapping of the already-used Redis volume. Render comparisons privately using existing runtime secret environments. After replacing Redis and Oxidized independently, require full LibreNMS validation and fresh polls, then observe automatic heartbeat progression again. Images/configuration remaining in Git do not establish production recovery. Preserve application state, volumes and previous images until normal backups are verified.
