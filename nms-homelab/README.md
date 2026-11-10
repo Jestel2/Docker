@@ -11,7 +11,7 @@ This repo stores sanitized configuration and operating notes only. Runtime data,
 
 ## Current Status
 
-- LibreNMS: updated to `librenms/librenms:latest`, currently 26.4.1 during the review.
+- LibreNMS desired state: pinned 26.10.2, with MariaDB 11.4.13 LTS in a separately restored database directory. November 10 live baseline was 26.6.1 / MariaDB 10.5.29; isolated restore and migration tests passed. Follow [the maintenance runbook](docs/maintenance-20261110.md) before the first rollout.
 - LibreNMS Dispatcher: running with Redis cache.
 - Oxidized: running after removing an unsupported HTTP hook.
 - Graylog: upgraded from 5.x to 7.1; MongoDB is 7.0 with FCV 7.0.
