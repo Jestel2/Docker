@@ -28,7 +28,7 @@ production data was unchanged by these tests.
 ## Cutover
 
 Before a first migration, build `images/librenms-runtime` as
-`local/librenms:26.10.2-runtimefix-20261110` on NMS and verify its two Python
+`local/librenms:26.10.2-runtimefix-20261110-v2` on NMS and verify its two Python
 checkers and `pip check`. The migration preflight requires that exact image
 reference for both application services. This fixes the upstream removed
 `pkg_resources` imports and cron directory permissions. An already migrated
