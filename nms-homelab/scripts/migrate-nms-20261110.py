@@ -1,6 +1,7 @@
 """Cut over the verified home NMS to a separately restored MariaDB 11.4 volume.
 
-Run as root on nms with a reviewed Compose JSON as the sole argument. The
+Run as root on nms with a reviewed Compose JSON as the argument. Add --check
+to validate the live prerequisites without creating files or stopping services. The
 controller must have verified the image digests and isolated restore/migration
 tests. This script pauses only LibreNMS and its dispatcher. Credentials remain
 in the existing Docker environment and child-process environments; none are
@@ -103,7 +104,8 @@ def wait_app():
 
 assert os.geteuid() == 0
 assert run(['hostname']).stdout.strip().lower() == 'nms'
-assert len(sys.argv) == 2
+assert len(sys.argv) in {2, 3}
+assert len(sys.argv) == 2 or sys.argv[2] == '--check'
 candidate_path = Path(sys.argv[1]).resolve()
 candidate = json.loads(candidate_path.read_text())
 assert candidate['name'] == 'nms-stack'
@@ -144,6 +146,10 @@ for name, service in live['services'].items():
             service['environment'][key] = '${' + SECRET_ENV[key] + ':?managed runtime secret required}'
 sanitized = json.dumps(live, indent=2) + '\n'
 assert all(value not in sanitized for key, value in db_environment.items() if 'PASSWORD' in key)
+if len(sys.argv) == 3:
+    print(json.dumps({'preflight': 'passed', 'baseline_counts': baseline,
+                      'credential_output': False, 'production_changes': False}))
+    sys.exit(0)
 RECOVERY.mkdir(mode=0o700)
 ROLLBACK.write_text(sanitized)
 ROLLBACK.chmod(0o600)
