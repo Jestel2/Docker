@@ -6,7 +6,7 @@ stack:
   host: 10.20.60.13
   remote_user: tberno
   path: /opt/docker-stacks/arr-stack
-  compose_file: docker-compose.yml
+  compose_file: compose.yaml
   runtime_env: /run/arr-stack.env
   token_file: /etc/1password/arr-stack.token
   render_script: /opt/docker-stacks/arr-stack/scripts/render-arr-env.sh
@@ -17,9 +17,10 @@ network:
 
 paths:
   config_root: /opt/docker-stacks/arr-stack/config
-  downloads: /mnt/synology-store1/Autodown/Downloads
-  tv: /mnt/synology-store1/TV Shows
-  movies: /mnt/synology-store1/Videos
+  downloads: /mnt/Media/Downloads
+  tv: /mnt/Media/TV Shows
+  movies: /mnt/Media/Videos
+  truenas_root: /mnt/Jestertek
 
 published_ports:
   qbittorrent: 8080
@@ -27,6 +28,8 @@ published_ports:
   radarr: 7878
   prowlarr: 9696
   flaresolverr: 8191
+  seerr: 5055
+  preserved_additional: [9898, 7879, 9697]
 
 secrets:
   PIA_USER: op://JesterTek/ARR Stack/PIA_USER
