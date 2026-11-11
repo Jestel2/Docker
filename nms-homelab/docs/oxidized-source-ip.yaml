@@ -1,0 +1,9 @@
+# Merge this non-secret snippet into the existing Oxidized configuration.
+# Preserve its existing URL, authentication headers and all other settings.
+source:
+  http:
+    map:
+      name: hostname
+      model: os
+      group: group
+      ip: ip
