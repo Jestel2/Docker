@@ -1,0 +1,4 @@
+# Image-only override; existing websocket settings and other Keep services stay.
+services:
+  keep-websocket-server:
+    image: local/soketi:1.6.1-node24.22.2-uws71-trixie-20261111
