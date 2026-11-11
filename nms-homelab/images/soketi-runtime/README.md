@@ -1,0 +1,7 @@
+# Soketi Node24 runtime patch — November 11, 2026
+
+This image preserves the verified Soketi1.6.1 application and uWebSockets.js20.71.0 native module while updating Node24.22.1 to24.22.2 and patching the Debian Trixie packages. The source is the retained local image ID `sha256:fc5cb65e6508800976cdbf82b851da5a85082625f856863ca3a46808856b2fc0`. The published Node base is pinned by registry digest. Application source and dependencies are copied from that verified image; the `VERSION=lts` source default is never used.
+
+Official runtime release: https://nodejs.org/en/blog/release/v24.22.2. The live distribution index https://nodejs.org/dist/index.json reports24.22.2 as the latest Node24 patch at this checkpoint. The November11 security release remains scheduled, not verified published.
+
+The build controller checks the source ID and tests native-module import plus full Soketi startup/readiness in a container with networknone, no state mounts and ephemeral test keys. It sends no events. Production replacement requires Git review/merge, unchanged private Compose rendering except the websocket image, preserved environment/ports/networks, unchanged API/UI/state and unrelated container IDs, and HTTP200 on the existing websocket readiness port6101. Retain the original image for rollback and persist the new Compose image only after those gates pass. Interactive client reconnection remains a separate check.
