@@ -10,7 +10,7 @@ COPY --from=application /venv /venv
 COPY --from=application /app /app
 # Preserve startup behavior while removing shell tracing of runtime arguments.
 RUN sed -i '/^set -x$/d' /venv/lib/python3.13/site-packages/keep/entrypoint.sh && chmod 0755 /venv/lib/python3.13/site-packages/keep/entrypoint.sh
-ENV PATH="/venv/bin:${PATH}" VIRTUAL_ENV=/venv PYTHONUNBUFFERED=1 PYTHONFAULTHANDLER=1 PYTHONHASHSEED=random EE_PATH=/app/ee
+ENV PATH="/venv/bin:${PATH}" VIRTUAL_ENV=/venv PYTHONUNBUFFERED=1 PYTHONFAULTHANDLER=1 PYTHONHASHSEED=random EE_PATH=ee
 WORKDIR /app
 USER keep
 EXPOSE 8080
