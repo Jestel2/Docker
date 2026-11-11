@@ -52,7 +52,7 @@ def http(url):
 def ready():
     for attempt in range(60):
         try:
-            assert http('http://127.0.0.1:6101/ready') == 200
+            assert http('http://10.20.60.15:6101/ready') == 200
             assert http('http://10.20.60.15:8180/healthcheck') == 200
             assert http('http://10.20.60.15:3200/api/auth/providers') == 200
             return
@@ -120,5 +120,7 @@ except Exception as error:
     record('rollout_failed', failure_type=type(error).__name__)
     run(compose(rollback) + ['up', '-d', '--no-deps', '--force-recreate', SERVICE], 300)
     ready()
+    if LIVE.read_text() != raw:
+        LIVE.write_text(raw)
     record('original_soketi_recovered', readiness=200)
     raise
