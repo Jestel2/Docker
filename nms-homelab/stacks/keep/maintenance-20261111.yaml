@@ -1,0 +1,7 @@
+# Image-only override for existing live Keep Compose/settings/state bind.
+# Native SQLite recovery and isolated derived-runtime probes must pass first.
+services:
+  keep-backend:
+    image: local/keep-api:0.55.0-python3.13.18-20261111
+  keep-frontend:
+    image: local/keep-ui:node24.22.2-20261111
