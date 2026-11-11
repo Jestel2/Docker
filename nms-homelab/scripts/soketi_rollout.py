@@ -66,9 +66,9 @@ def others():
 
 assert os.geteuid() == 0 and run(['hostname']).strip().lower() == 'nms'
 assert not STATUS.exists()
-build = json.loads((WORK / 'build-status.json').read_text())
+build = json.loads((WORK / 'build-status-retry1.json').read_text())
 assert build['phase'] == 'isolated_runtime_verified'
-unit = run(['systemctl', 'show', 'soketi-runtime-build-20261111.service', '-p', 'SubState', '-p', 'Result', '-p', 'ExecMainStatus'])
+unit = run(['systemctl', 'show', 'soketi-runtime-build-20261111-retry1.service', '-p', 'SubState', '-p', 'Result', '-p', 'ExecMainStatus'])
 assert 'SubState=exited' in unit and 'Result=success' in unit and 'ExecMainStatus=0' in unit
 ready()
 before = inspect(NAME)
@@ -108,7 +108,7 @@ try:
         env.pop('NODE_VERSION', None)
         return env
     assert settings(after) == settings(before)
-    output = run(['docker', 'exec', NAME, 'node', '-e', 'console.log(process.version);require("uWebSockets.js");console.log(require("uWebSockets.js/package.json").version)'])
+    output = run(['docker', 'exec', NAME, 'node', '-e', 'console.log(process.version);require("uWebSockets.js");console.log(require("/app/node_modules/uWebSockets.js/package.json").version)'])
     assert output.strip().splitlines() == ['v24.22.2', '20.71.0']
     assert others() == unrelated and LIVE.read_text() == raw
     tmp = LIVE.with_suffix('.maintenance.tmp')
