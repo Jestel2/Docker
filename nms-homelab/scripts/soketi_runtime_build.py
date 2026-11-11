@@ -15,11 +15,11 @@ import subprocess
 import time
 
 WORK = Path('/var/tmp/soketi-maintenance-20261111')
-STATUS = WORK / 'build-status.json'
+STATUS = WORK / 'build-status-retry1.json'
 SOURCE = 'local/soketi:1.6.1-node24-uws71-trixie'
 SOURCE_ID = 'sha256:fc5cb65e6508800976cdbf82b851da5a85082625f856863ca3a46808856b2fc0'
 IMAGE = 'local/soketi:1.6.1-node24.22.2-uws71-trixie-20261111'
-NAME = 'soketi-runtime-probe-20261111'
+NAME = 'soketi-runtime-probe-20261111-retry1'
 ENV = dict(os.environ)
 
 def run(args, timeout=120):
@@ -45,7 +45,7 @@ record('verified_source_image', source_id=SOURCE_ID)
 created = False
 try:
     run(['docker', 'build', '--tag', IMAGE, str(WORK / 'runtime')], 1200)
-    probe = 'console.log(JSON.stringify({node:process.version,uws:require("uWebSockets.js/package.json").version}));require("uWebSockets.js");console.log("native_import=ok")'
+    probe = 'console.log(JSON.stringify({node:process.version,uws:require("/app/node_modules/uWebSockets.js/package.json").version}));require("uWebSockets.js");console.log("native_import=ok")'
     output = run(['docker', 'run', '--rm', '--network', 'none', '--memory', '256m', '--entrypoint', 'node', IMAGE, '-e', probe])
     assert 'v24.22.2' in output and '20.71.0' in output and 'native_import=ok' in output
     # Test keys have no relationship to any configured production application.
