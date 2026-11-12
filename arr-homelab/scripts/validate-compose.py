@@ -11,6 +11,7 @@ env = dict(os.environ, PIA_USER='validation', PIA_PASS='validation')
 result = subprocess.run(['docker', 'compose', '-f', str(source), '--profile', 'maintenance',
                          'config', '--format', 'json'], env=env, capture_output=True, text=True, check=True)
 services = json.loads(result.stdout)['services']
+assert services['gluetun']['environment']['VPN_PORT_FORWARDING_STATUS_FILE'] == '/gluetun/forwarded_port'
 assert services['qbittorrent']['network_mode'] == 'service:gluetun'
 assert services['flaresolverr']['network_mode'] == 'service:gluetun'
 management_ports = {8989, 7878, 9696, 5055}
