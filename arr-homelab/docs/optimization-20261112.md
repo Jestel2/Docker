@@ -53,3 +53,28 @@ Migrate in small batches through supported Sonarr/Radarr root-folder moves after
 
 Hardlinks were already enabled in both Arr apps. Verify actual filesystem/dataset behavior with a small controlled test before claiming links work across the CIFS share. A shared container mount alone does not prove hardlink support. Avoid broad media moves and do not change TrueNAS configuration as part of this optimization.
 
+
+## Verified rollout result — 2026-11-12 19:15 UTC
+
+Deployment is complete for Seerr, management networking and Recyclarr. Configuration is merged through [PR #23](https://github.com/Jestel2/Docker/pull/23), commit `57fb621bee6ceb136904f17d821e7706ccbe4071`; [PR #21](https://github.com/Jestel2/Docker/pull/21) contains the topology and maintenance setup, and [PR #22](https://github.com/Jestel2/Docker/pull/22) the HTTP helper correction and regression test. CI passed; the port-status-file review finding was corrected and its thread resolved.
+
+| Check | Observed result |
+| --- | --- |
+| Core containers | All eight deployed containers running; Gluetun and Seerr healthy |
+| Seerr | 3.5.2; Sonarr/Radarr connection tests return HTTP 200; both defaults use TrueNAS |
+| VPN boundary | qBittorrent and FlareSolverr share the new Gluetun namespace; qBittorrent still bound to tun0 |
+| Indexer proxy | Proxy egress matches the VPN and differs from host egress |
+| Prowlarr | Application sync completed; 1337x test passed; no current health warnings |
+| Long-failing sources | Uindex and Magnet Cat disabled in Prowlarr and Arr; their retained Arr URLs corrected from localhost to prowlarr |
+| Library preservation | Sonarr 314 series, Radarr 2271 movies; six existing profile IDs in each |
+| Quality policy | HD size caps 20/35 MB per minute verified through native APIs; BR-DISK -10000 in every profile; upgrades and Remux/Raw-HD disabled |
+| Recurrence | Recyclarr timer enabled; daily 03:25 America/New_York plus jitter; repeat sync reports all settings up to date |
+| Recovery | Root-only offline configuration archive passed gzip integrity validation |
+| Cleanuparr | 2.11.0 running on loopback 11011; account setup incomplete and automation inactive |
+| Port forwarding | Off; port-sync timer disabled pending centrally managed downloader authentication |
+
+Recyclarr instance names must be globally unique across app types: `sonarr-homelab` and `radarr-homelab`. The earlier duplicate names caused the CLI to skip both while returning zero; configuration validation now checks uniqueness and the sync helper verifies the resulting native Arr policy. An immediate first read after initial sync showed old size values; subsequent native API reads and an idempotent repeat sync verified the desired values.
+
+Both required plaintext integration fields remain absent in 1Password. The rejected managed write is the remaining activation blocker; no password was changed and no API authentication bypass was enabled.
+
+Gold Rush S06E15–19 remain missing. The E15/E16 replacement jobs still have zero bytes and no metadata at verification time. Service connectivity and a successful search/grab are not proof of a completed import. Continue with verified episode-title filtering and source availability checks; do not import partial or misnumbered files.

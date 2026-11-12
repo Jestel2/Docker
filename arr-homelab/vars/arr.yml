@@ -48,6 +48,8 @@ optimization:
   cleanuparr_version: 2.11.0
   cleanuparr_bind: 127.0.0.1:11011
   recyclarr_schedule: daily at 03:25 America/New_York
+  recyclarr_status: applied and verified; timer enabled
+  failed_sources_disabled: [Uindex, Magnet Cat]
   vpn_port_forwarding: off
   forwarding_candidate_region: CA Montreal
   forwarding_status: pending managed downloader credential and reachability validation
