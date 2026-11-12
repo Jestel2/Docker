@@ -1,0 +1,10 @@
+[Unit]
+Description=Keep the qBittorrent listening port aligned with PIA
+
+[Timer]
+OnBootSec=90
+OnUnitActiveSec=60
+Unit=arr-qbit-port-sync.service
+
+[Install]
+WantedBy=timers.target

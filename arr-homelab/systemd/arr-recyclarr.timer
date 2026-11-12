@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily ARR quality policy synchronization
+
+[Timer]
+OnCalendar=*-*-* 03:25:00 America/New_York
+Persistent=true
+RandomizedDelaySec=600
+Unit=arr-recyclarr.service
+
+[Install]
+WantedBy=timers.target

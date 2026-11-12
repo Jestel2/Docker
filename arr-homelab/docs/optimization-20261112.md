@@ -1,9 +1,55 @@
 # ARR optimization rollout — 2026-11-12
 
-## Seerr security patch
+## Desired state and rollout
 
-Pin Seerr 3.5.2 to `sha256:aadee014b40e28cf9aa4928bc9d1183a6eb08f8c44d543cddc9efdcb16549be2`. [Upstream release](https://github.com/seerr-team/seerr/releases/tag/v3.5.2).
+Host: ddocker (`tberno@10.20.60.13`). Runtime: `/opt/docker-stacks/arr-stack/compose.yaml`. Canonical repository: [Jestel2/Docker](https://github.com/Jestel2/Docker), `arr-homelab/`.
 
-Deployment on ddocker (`10.20.60.13`) uses `/opt/docker-stacks/arr-stack/compose.yaml`. Pull before restarting. Stop only Seerr, retain a root-only backup of its configuration/database, deploy the merged Compose file with `docker compose up -d --no-deps seerr`, then verify the public settings endpoint, health, version and Arr integrations. Configuration backups contain credentials and must remain on the host outside Git. Retain the previous image/configuration for rollback; do not prune volumes or images.
+The Seerr 3.5.2 security patch was deployed and verified healthy from [PR #20](https://github.com/Jestel2/Docker/pull/20), merge `bd50fe9f2aff0c49af0363567283b2a87a671128`. [Upstream release](https://github.com/seerr-team/seerr/releases/tag/v3.5.2).
 
-The subsequent optimization rollout separates management networking, configures conservative Cleanuparr and Recyclarr policies, and validates VPN port forwarding. Existing media migration is a separate controlled task; both Seerr defaults already use TrueNAS.
+Sonarr, Radarr, Prowlarr and Seerr use their own containers on the management bridge and retain ports 8989, 7878, 9696 and 5055. qBittorrent and FlareSolverr share Gluetun's network namespace. qBittorrent remains bound to `tun0`. Gluetun retains its firewall and LAN exception. Prowlarr uses Gluetun's HTTP proxy on internal port 8888 for external indexer requests; local application addresses bypass that proxy. The proxy has no host port. Existing additional published ports 9898, 7879 and 9697 are preserved pending identification.
+
+Seerr's default Sonarr and Radarr roots are `/truenas/Media/TV_Shows` and `/truenas/Media/Videos`. Existing mount aliases remain available for the older library. New requests use the existing HD - 720p/1080p profile.
+
+Recyclarr 8.8.1 uses a disposable container invoked by `arr-recyclarr.timer` daily at 03:25 America/New_York plus up to ten minutes jitter. Its Git-managed YAML preserves all six existing profile identities in each Arr app, quality memberships and disabled upgrades. Remux and Raw-HD remain disabled. HD 720p sizes are capped at 20 MB/minute, with 12 preferred; HD 1080p at 35 MB/minute, with 20 preferred. A 120-minute 1080p movie therefore has about a 4.2 GB ceiling. BR-DISK has score -10000 with minimum custom-format score 0. Existing executable and Gold Rush release-title filters remain in Sonarr. No quality sync triggers searches or upgrades of existing files. [Configuration reference](https://recyclarr.dev/reference/configuration/quality-definition/).
+
+Cleanuparr 2.11.0 is installed with its WebUI bound to host loopback at `127.0.0.1:11011`. It receives no media volume mount. Until managed credentials are available, setup and queue automation remain inactive. After bootstrap, the conservative policy is a 15-minute scan and 96 strikes (approximately 24 hours) for errored downloads and stalled public downloads below 100% completion, resetting strikes on progress. Private torrent deletion, global metadata cleanup, failed-import cleanup, DownloadCleaner and forced import stay disabled. Cleanuparr's native metadata rule deletes globally without a privacy filter, so it requires a separate policy decision before activation. Internet connectivity checks prevent outage-driven strikes. Bootstrap starts in dry run; inspect its activity before invoking `cleanup --live`. [Queue cleaner documentation](https://cleanuparr.github.io/docs/configuration/queue-cleaner/).
+
+## Managed credentials and pending activation
+
+1Password remains authoritative. The ARR service token at `/etc/1password/arr-stack.token` can read the existing item but rejected a credential-field update on November 12. No credential values were written to Git, notes or temporary files. No qBittorrent password was changed.
+
+Required fields in `op://JesterTek/ARR Stack`:
+
+- `QBITTORRENT_WEBUI_PASSWORD`: the current qBittorrent admin password, or a newly coordinated managed rotation.
+- `CLEANUPARR_ADMIN_PASSWORD`: a dedicated admin password for Cleanuparr.
+
+The service account needs vault edit permission only if bot is to create or rotate these managed fields. Alternatively, an administrator can add them directly in 1Password. Never paste their values into chat. The existing PBKDF2 field cannot authenticate new API integrations.
+
+Port forwarding remains off until authenticated qBittorrent port synchronization passes. Git includes `arr-qbit-port-sync.service` and `.timer`, initially disabled. The helper reads Gluetun's `/gluetun/forwarded_port` from the host bind mount, verifies VPN health and qBittorrent's `tun0` binding, and changes only its listening-port settings through the authenticated API. It turns off random port selection and UPnP. It performs no torrent deletion.
+
+After secure credentials become available:
+
+1. Run `sudo -n python3 scripts/arr-maintenance.py qbit-auth` on ddocker from the stack directory. Resolve any centrally managed password mismatch before proceeding.
+2. Set nonsecret `PIA_REGION=CA Montreal`, `PIA_PORT_FORWARD_ONLY=true` and `VPN_PORT_FORWARDING=on` in the managed runtime environment; reflect the activation in `vars/arr.yml` and Git. CA Montreal was verified present with port-forward-capable OpenVPN servers in Gluetun's live server database. [PIA forwarding reference](https://github.com/qdm12/gluetun-wiki/blob/main/setup/providers/private-internet-access.md).
+3. Recreate Gluetun, qBittorrent and FlareSolverr together during the authorized maintenance window. Wait for healthy VPN and a current forwarded-port file.
+4. Run `sudo -n python3 scripts/arr-maintenance.py port-sync`, compare the assigned/listening ports, validate P2P reachability, then enable `arr-qbit-port-sync.timer`. Preserve authentication and the kill switch.
+5. Run `sudo -n python3 scripts/arr-maintenance.py cleanup`, inspect dry-run activity, then `cleanup --live` after confirming only the intended stale jobs are targeted. Keep WebUI access local or use a verified SSH tunnel; no public proxy has been configured.
+
+## Deployment and verification
+
+Configuration changes must be committed, reviewed and merged before deployment. Validate the candidate with `python3 scripts/validate-compose.py stacks/arr-stack/docker-compose.yml`; CI checks namespace separation, port ownership and pinned images. Recyclarr preview was successfully executed against live Arr APIs before deployment.
+
+Pull pinned images before stopping applications. Keep `/opt/docker-stacks/arr-stack/maintenance-20261112-optimization/` root-only. Retain the old Compose file and offline application configuration/database backup there. Backups include existing credentials and stay on the host, outside Git. Preserve torrent resume state and media files; do not prune images or volumes.
+
+Stop the affected services, take the backup, install merged Compose/scripts/Recyclarr YAML, and run `arr-maintenance.py seerr-paths` only while Seerr is stopped. Start Gluetun and wait for health, then start qBittorrent, FlareSolverr and the management apps. Run `arr-maintenance.py rewire` to update and test downloader addresses, Prowlarr application URLs and its FlareSolverr endpoint. It queues ApplicationIndexerSync to replace the old localhost indexer URLs. Run `arr-maintenance.py check` to verify library counts, profile safeguards and downloader integrations, then the initial Recyclarr sync and the same check again. Install the systemd units; enable the Recyclarr timer only after a successful sync. Leave port-sync disabled while forwarding is off.
+
+Rollback requires stopping affected services before restoring the prior Compose and offline configuration snapshot. Restore the pre-network Seerr settings alongside the other API address changes, recreate Gluetun and the namespace-sharing clients, then verify the original integrations. Disable the new timers during rollback. Seerr's earlier 3.5.1 archive/image is retained for emergency patch rollback, but the preferred network rollback keeps patched 3.5.2.
+
+## Existing-library migration plan
+
+Live inventory before this rollout: Sonarr 314 series, 223 on legacy paths; Radarr 2271 movies, 2156 on legacy paths. `/mnt/Media/Videos` had approximately 90 MiB free and reported 100% full. `/mnt/Jestertek` had approximately 35 TiB free. This rollout does not move or delete existing media, change TrueNAS datasets or change Plex/Jellyfin libraries.
+
+Migrate in small batches through supported Sonarr/Radarr root-folder moves after verifying source access, destination capacity and playback visibility from plextacular. Choose a small completed show/movie first; copy/verify files and metadata, scan Jellyfin/Plex and verify playback, then approve retirement of the source separately. Keep source files until verification. Preserve season/episode numbering and release filters for Gold Rush; its missing S06E15 onward is a source/download availability problem, not proof of a completed library repair.
+
+Hardlinks were already enabled in both Arr apps. Verify actual filesystem/dataset behavior with a small controlled test before claiming links work across the CIFS share. A shared container mount alone does not prove hardlink support. Avoid broad media moves and do not change TrueNAS configuration as part of this optimization.
+

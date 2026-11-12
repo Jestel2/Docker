@@ -38,3 +38,21 @@ secrets:
   RADARR_API_KEY: op://JesterTek/ARR Stack/RADARR_API_KEY
   PROWLARR_API_KEY: op://JesterTek/ARR Stack/PROWLARR_API_KEY
   QBITTORRENT_WEBUI_PASSWORD_PBKDF2: op://JesterTek/ARR Stack/QBITTORRENT_WEBUI_PASSWORD_PBKDF2
+
+optimization:
+  verified: 2026-11-12
+  management_network: arr-stack_default
+  indexer_proxy: http://gluetun:8888
+  seerr_version: 3.5.2
+  recyclarr_version: 8.8.1
+  cleanuparr_version: 2.11.0
+  cleanuparr_bind: 127.0.0.1:11011
+  recyclarr_schedule: daily at 03:25 America/New_York
+  vpn_port_forwarding: off
+  forwarding_candidate_region: CA Montreal
+  forwarding_status: pending managed downloader credential and reachability validation
+  cleanup_status: pending managed credentials; automation inactive
+
+integration_secrets_required:
+  QBITTORRENT_WEBUI_PASSWORD: op://JesterTek/ARR Stack/QBITTORRENT_WEBUI_PASSWORD
+  CLEANUPARR_ADMIN_PASSWORD: op://JesterTek/ARR Stack/CLEANUPARR_ADMIN_PASSWORD

@@ -1,0 +1,12 @@
+[Unit]
+Description=Apply the Git-managed ARR quality policy with Recyclarr
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/docker-stacks/arr-stack/scripts/arr-maintenance.py recyclarr
+TimeoutStartSec=600
+UMask=0077
+StandardOutput=journal
+StandardError=journal

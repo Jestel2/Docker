@@ -1,5 +1,7 @@
 # ARR Homelab Stack
 
+Current networking, maintenance policy, verification and secure activation requirements: [November 12 optimization runbook](docs/optimization-20261112.md).
+
 Docker Compose backup for the ARR/qBittorrent/Gluetun stack on `10.20.60.13`.
 
 This repository folder stores sanitized stack configuration and lightweight app examples. Runtime databases, logs, downloads, app backup folders, API keys, WebUI password hashes, and VPN credentials are intentionally excluded.
