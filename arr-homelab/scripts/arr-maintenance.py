@@ -6,7 +6,7 @@ values or authentication responses are emitted. API mutations use supported
 application APIs; this tool never edits a live application database.
 """
 import argparse
-import http.cookiejar
+from http.cookiejar import CookieJar
 import json
 import os
 from pathlib import Path
@@ -124,10 +124,14 @@ def recyclarr(preview):
         check()
 
 
-def qbittorrent():
-    """Authenticate using the central password; never use localhost auth bypass."""
-    base = 'http://127.0.0.1:8080'
-    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+def qbittorrent(base='http://127.0.0.1:8080'):
+    """Return the authenticated endpoint and cookie opener using managed auth.
+
+    Production callers use host loopback; tests can supply a local test server.
+    Import CookieJar directly because the HTTP helper owns the name ``http``.
+    Authentication must succeed before callers can mutate application settings.
+    """
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(CookieJar()))
     data = urllib.parse.urlencode({'username': 'admin',
                                   'password': secret('QBITTORRENT_WEBUI_PASSWORD')}).encode()
     req = urllib.request.Request(base + '/api/v2/auth/login', data=data,
