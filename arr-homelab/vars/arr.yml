@@ -54,8 +54,8 @@ optimization:
   forwarding_region: CA Montreal
   forwarding_port_forward_only: true
   forwarding_candidate_region: CA Montreal
-  forwarding_status: prepared for deployment; managed login verified; port and reachability checks pending
-  cleanup_status: managed fields readable; bootstrap and dry-run verification pending
+  forwarding_status: active; assigned and listening ports matched; external TCP reachable; timer enabled
+  cleanup_status: live; dry run reviewed; 15-minute scans and 96-strike public stall policy verified
 
 integration_secrets_required:
   QBITTORRENT_WEBUI_PASSWORD: op://JesterTek/ARR Stack/QBITTORRENT_WEBUI_PASSWORD
