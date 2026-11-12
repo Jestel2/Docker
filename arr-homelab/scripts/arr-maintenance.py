@@ -39,7 +39,7 @@ def http(url, method='GET', payload=None, headers=None, opener=None):
     data = None if payload is None else json.dumps(payload).encode()
     req = urllib.request.Request(url, data=data, method=method,
         headers={'Content-Type': 'application/json', **(headers or {})})
-    with (opener or urllib.request).open(req, timeout=35) as response:
+    with (opener.open if opener else urllib.request.urlopen)(req, timeout=35) as response:
         raw = response.read()
         return json.loads(raw) if raw else None
 
@@ -254,3 +254,4 @@ if __name__ == '__main__':
     except (RuntimeError, OSError, ValueError, subprocess.SubprocessError) as exc:
         print(f'{args.action}: {exc}', file=sys.stderr)
         sys.exit(1)
+

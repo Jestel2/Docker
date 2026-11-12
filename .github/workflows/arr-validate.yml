@@ -14,3 +14,6 @@ jobs:
         run: python3 arr-homelab/scripts/validate-compose.py arr-homelab/stacks/arr-stack/docker-compose.yml
       - name: Check maintenance script syntax
         run: python3 -m py_compile arr-homelab/scripts/arr-maintenance.py
+
+      - name: Exercise maintenance HTTP requests
+        run: python3 arr-homelab/scripts/test_maintenance_http.py
