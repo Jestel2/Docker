@@ -12,11 +12,11 @@ Seerr's default Sonarr and Radarr roots are `/truenas/Media/TV_Shows` and `/true
 
 Recyclarr 8.8.1 uses a disposable container invoked by `arr-recyclarr.timer` daily at 03:25 America/New_York plus up to ten minutes jitter. Its Git-managed YAML preserves all six existing profile identities in each Arr app, quality memberships and disabled upgrades. Remux and Raw-HD remain disabled. HD 720p sizes are capped at 20 MB/minute, with 12 preferred; HD 1080p at 35 MB/minute, with 20 preferred. A 120-minute 1080p movie therefore has about a 4.2 GB ceiling. BR-DISK has score -10000 with minimum custom-format score 0. Existing executable and Gold Rush release-title filters remain in Sonarr. No quality sync triggers searches or upgrades of existing files. [Configuration reference](https://recyclarr.dev/reference/configuration/quality-definition/).
 
-Cleanuparr 2.11.0 is installed with its WebUI bound to host loopback at `127.0.0.1:11011`. It receives no media volume mount. Until managed downloader authentication succeeds, setup and queue automation remain inactive. After bootstrap, the conservative policy is a 15-minute scan and 96 strikes (approximately 24 hours) for errored downloads and stalled public downloads below 100% completion, resetting strikes on progress. Private torrent deletion, global metadata cleanup, failed-import cleanup, DownloadCleaner and forced import stay disabled. Cleanuparr's native metadata rule deletes globally without a privacy filter, so it requires a separate policy decision before activation. Internet connectivity checks prevent outage-driven strikes. Bootstrap starts in dry run; inspect its activity before invoking `cleanup --live`. [Queue cleaner documentation](https://cleanuparr.github.io/docs/configuration/queue-cleaner/).
+Cleanuparr 2.11.0 is installed with its WebUI bound to host loopback at `127.0.0.1:11011`. It receives no media volume mount. Account setup and queue automation are now active after managed authentication and dry-run verification. After bootstrap, the conservative policy is a 15-minute scan and 96 strikes (approximately 24 hours) for errored downloads and stalled public downloads below 100% completion, resetting strikes on progress. Private torrent deletion, global metadata cleanup, failed-import cleanup, DownloadCleaner and forced import stay disabled. Cleanuparr's native metadata rule deletes globally without a privacy filter, so it requires a separate policy decision before activation. Internet connectivity checks prevent outage-driven strikes. Bootstrap starts in dry run; inspect its activity before invoking `cleanup --live`. [Queue cleaner documentation](https://cleanuparr.github.io/docs/configuration/queue-cleaner/).
 
-## Managed credentials and pending activation
+## Managed credentials and verified activation
 
-1Password remains authoritative. The ARR service token at `/etc/1password/arr-stack.token` rejected the initial credential-field update on November 12. The administrator has since added both integration fields, and service-account read access is verified. The saved `QBITTORRENT_WEBUI_PASSWORD` does not match the current qBittorrent admin password: login returned HTTP 401 and an in-memory PBKDF2 comparison failed. The existing managed PBKDF2 field still matches the running configuration. Correct the plaintext field to the existing password, or coordinate a managed rotation of qBittorrent and its integrations before activation. No credential values were written to Git, notes or temporary files; no password was changed.
+1Password remains authoritative. The administrator added both integration fields and corrected the qBittorrent password. Managed downloader and Cleanuparr admin authentication are now verified. The initial rejected write and password mismatch are retained below as historical evidence. The service account retains its existing read access; no password values were copied into Git, notes or temporary files and no application password was changed.
 
 Required fields in `op://JesterTek/ARR Stack`:
 
@@ -25,9 +25,9 @@ Required fields in `op://JesterTek/ARR Stack`:
 
 The service account needs vault edit permission only if bot is to create or rotate these managed fields. Alternatively, an administrator can add them directly in 1Password. Never paste their values into chat. The existing PBKDF2 field cannot authenticate new API integrations.
 
-Port forwarding remains off until authenticated qBittorrent port synchronization passes. Git includes `arr-qbit-port-sync.service` and `.timer`, initially disabled. The helper reads Gluetun's `/gluetun/forwarded_port` from the host bind mount, verifies VPN health and qBittorrent's `tun0` binding, and changes only its listening-port settings through the authenticated API. It turns off random port selection and UPnP. It performs no torrent deletion.
+Native PIA port forwarding is active on CA Montreal after authenticated port synchronization and an external TCP reachability check. Git includes `arr-qbit-port-sync.service` and `.timer`; the service passed with Result=success/exit 0 and the timer is enabled. The helper reads Gluetun's `/gluetun/forwarded_port` from the host bind mount, verifies VPN health and qBittorrent's `tun0` binding, and changes only its listening-port settings through the authenticated API. It turns off random port selection and UPnP. It performs no torrent deletion.
 
-After secure credentials become available:
+Activation and recovery checks:
 
 1. Run `sudo -n python3 scripts/arr-maintenance.py qbit-auth` on ddocker from the stack directory. Resolve any centrally managed password mismatch before proceeding.
 2. Set nonsecret `PIA_REGION=CA Montreal`, `PIA_PORT_FORWARD_ONLY=true` and `VPN_PORT_FORWARDING=on` in the managed runtime environment; reflect the activation in `vars/arr.yml` and Git. CA Montreal was verified present with port-forward-capable OpenVPN servers in Gluetun's live server database. [PIA forwarding reference](https://github.com/qdm12/gluetun-wiki/blob/main/setup/providers/private-internet-access.md).
@@ -79,8 +79,31 @@ At the 19:15 UTC verification, both required plaintext integration fields were a
 
 Gold Rush S06E15–19 remain missing. The E15/E16 replacement jobs still have zero bytes and no metadata at verification time. Service connectivity and a successful search/grab are not proof of a completed import. Continue with verified episode-title filtering and source availability checks; do not import partial or misnumbered files.
 
-## Managed credential follow-up — 2026-11-12
+## Initial managed credential follow-up — 2026-11-12 (historical)
 
 Both integration fields now exist in the Secure Note `ARR Stack` in the `JesterTek` vault and are readable by the existing service account. The remaining blocker is a qBittorrent password mismatch, rather than missing fields. Sonarr and Radarr continue to authenticate with their existing stored credentials. Cleanuparr setup and cleanup automation remain inactive; PIA forwarding remains off and the port-sync timer disabled.
 
 The authentication diagnostic also exposed a Python name collision: the `http` helper hid the imported `http.cookiejar` package. [PR #25](https://github.com/Jestel2/Docker/pull/25), merged as `80062e5d2721e7eaf1111e09513615050a3aee26`, imports `CookieJar` directly. Two local HTTP integration tests cover the actual managed downloader login, its session cookie and rejected credentials. CI and automatic review passed; the deployed helper SHA256 is `ebabc92e4e3eadc838eaf0a3464cdb3c321849eac5ae8d5a96de71e43b6be667`. This helper-only deployment did not restart containers or change application passwords.
+
+## Verified activation — 2026-11-12 22:01 UTC
+
+Managed qBittorrent authentication passes and protected preferences are readable. Current qBittorrent returns HTTP 204 with a session cookie on successful login. [PR #27](https://github.com/Jestel2/Docker/pull/27), merge `16e87f90157680befef7ae5a1373dc72ec456979`, accepts current 204 and legacy 200/Ok responses and verifies the authenticated session. Local HTTP integration tests exercise both responses, rejected passwords and a missing cookie; CI and automatic review passed. Deployed helper SHA256: `874353acbba60127a8f0dc4ceaa7f67740f9358369e1b13669be1959bb5b9d75`.
+
+[PR #28](https://github.com/Jestel2/Docker/pull/28), merge `0ad66b07ca18fd72fbb85ccfc516785e99832b45`, configures `PIA_REGION=CA Montreal`, `PIA_PORT_FORWARD_ONLY=true` and `VPN_PORT_FORWARDING=on` in the managed template and sanitized example. VPN credentials were supplied to Compose in process memory from 1Password. Only Gluetun, qBittorrent and FlareSolverr were recreated; all 14 torrent entries survived. The template is installed on ddocker for subsequent managed redeploys.
+
+The initial Montreal connection failed TLS negotiation with stale built-in endpoints. The supported Gluetun updater refreshed PIA's server cache in the existing persistent bind mount, using the same pinned image without credentials, and Gluetun connected successfully afterward. [Server-cache update procedure](https://github.com/qdm12/gluetun-wiki/blob/main/setup/servers.md#update-using-the-command-line). Treat cache files as runtime data, not Git content. The prior template and offline qBittorrent configuration/resume archive remain root-only in the existing recovery directory.
+
+| Check | Observed result |
+| --- | --- |
+| Native forwarding | Healthy CA Montreal tunnel; PIA assigned port 51689 and Gluetun opened it through tun0 |
+| Listening port | qBittorrent port 51689 matched the forwarded-port file; tun0 binding retained; random port and UPnP disabled |
+| Inbound access | TCP connection from plextacular outside the VPN to 140.228.24.233:51689 succeeded |
+| P2P | Connected; DHT populated and download traffic observed |
+| Recurrence | Port-sync service Result=success/exit 0; timer enabled and active; Recyclarr timer remains active |
+| Cleanuparr | Managed admin login passed; dry-run scans reviewed; queue cleaner live, every 15 minutes, 96 strikes |
+| First live scan | Three stalled-strike events; no error or removal events observed |
+| Safeguards | Public-only stall rule, reset on progress; private deletion, failed-import cleanup, metadata cleanup, forced import and DownloadCleaner disabled |
+| Other automation | Proactive Seeker search disabled and both Seeker instances disabled |
+| Service health | All ARR containers running; Gluetun/Seerr healthy; downloader tests passed; Prowlarr health empty; Plex/Jellyfin/Plextreme healthy |
+
+Assigned IP/port values are this verification's observations and can change on a later VPN session; the timer reads the current status file. Gold Rush E15/E16 replacements still had no metadata or downloaded bytes. No completed episode import, media migration or TrueNAS change is claimed.
