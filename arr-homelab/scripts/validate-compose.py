@@ -2,6 +2,7 @@
 """Validate namespace isolation and management-port ownership in rendered Compose."""
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -24,3 +25,8 @@ assert all(p.get('host_ip') == '127.0.0.1' for p in services['cleanuparr']['port
 assert services['recyclarr']['profiles'] == ['maintenance']
 assert all('@sha256:' in s['image'] for s in services.values())
 print('Compose renders; VPN isolation, service ports and image pins verified')
+
+config = source.parent / 'recyclarr/recyclarr.yml'
+instances = re.findall(r'^  ([a-zA-Z0-9_-]+):$', config.read_text(), re.MULTILINE)
+assert len(instances) == 2 and len(set(instances)) == 2, 'Recyclarr instance names must be globally unique'
+print('Recyclarr instance names are unique')
