@@ -1,0 +1,16 @@
+name: ARR configuration validation
+on:
+  pull_request:
+    paths: ['arr-homelab/**', '.github/workflows/arr-validate.yml']
+  push:
+    branches: [main]
+    paths: ['arr-homelab/**', '.github/workflows/arr-validate.yml']
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose networking and image pins
+        run: python3 arr-homelab/scripts/validate-compose.py arr-homelab/stacks/arr-stack/docker-compose.yml
+      - name: Check maintenance script syntax
+        run: python3 -m py_compile arr-homelab/scripts/arr-maintenance.py
