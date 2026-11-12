@@ -1,0 +1,857 @@
+# Managed policy: preserve profile names, quality membership, and no upgrades.
+sonarr:
+  homelab:
+    base_url: http://host.docker.internal:8989
+    api_key: !env_var SONARR_API_KEY
+    quality_profiles:
+    - name: Any
+      upgrade:
+        allowed: false
+        until_quality: SDTV
+      min_format_score: 0
+      qualities:
+      - name: Bluray-2160p Remux
+        enabled: false
+      - name: Bluray-2160p
+        enabled: false
+      - name: WEB 2160p
+        enabled: false
+        qualities:
+        - WEBRip-2160p
+        - WEBDL-2160p
+      - name: HDTV-2160p
+        enabled: false
+      - name: Bluray-1080p Remux
+        enabled: false
+      - name: Bluray-1080p
+        enabled: true
+      - name: WEB 1080p
+        enabled: true
+        qualities:
+        - WEBRip-1080p
+        - WEBDL-1080p
+      - name: Bluray-720p
+        enabled: true
+      - name: WEB 720p
+        enabled: true
+        qualities:
+        - WEBRip-720p
+        - WEBDL-720p
+      - name: Raw-HD
+        enabled: false
+      - name: HDTV-1080p
+        enabled: true
+      - name: HDTV-720p
+        enabled: true
+      - name: Bluray-576p
+        enabled: true
+      - name: Bluray-480p
+        enabled: true
+      - name: DVD
+        enabled: true
+      - name: WEB 480p
+        enabled: true
+        qualities:
+        - WEBRip-480p
+        - WEBDL-480p
+      - name: SDTV
+        enabled: true
+      - name: Unknown
+        enabled: false
+    - name: SD
+      upgrade:
+        allowed: false
+        until_quality: SDTV
+      min_format_score: 0
+      qualities:
+      - name: Bluray-2160p Remux
+        enabled: false
+      - name: Bluray-2160p
+        enabled: false
+      - name: WEB 2160p
+        enabled: false
+        qualities:
+        - WEBRip-2160p
+        - WEBDL-2160p
+      - name: HDTV-2160p
+        enabled: false
+      - name: Bluray-1080p Remux
+        enabled: false
+      - name: Bluray-1080p
+        enabled: false
+      - name: WEB 1080p
+        enabled: false
+        qualities:
+        - WEBRip-1080p
+        - WEBDL-1080p
+      - name: Bluray-720p
+        enabled: false
+      - name: WEB 720p
+        enabled: false
+        qualities:
+        - WEBRip-720p
+        - WEBDL-720p
+      - name: Raw-HD
+        enabled: false
+      - name: HDTV-1080p
+        enabled: false
+      - name: HDTV-720p
+        enabled: false
+      - name: Bluray-576p
+        enabled: true
+      - name: Bluray-480p
+        enabled: true
+      - name: DVD
+        enabled: true
+      - name: WEB 480p
+        enabled: true
+        qualities:
+        - WEBRip-480p
+        - WEBDL-480p
+      - name: SDTV
+        enabled: true
+      - name: Unknown
+        enabled: false
+    - name: HD-720p
+      upgrade:
+        allowed: false
+        until_quality: HDTV-720p
+      min_format_score: 0
+      qualities:
+      - name: Bluray-2160p Remux
+        enabled: false
+      - name: Bluray-2160p
+        enabled: false
+      - name: WEB 2160p
+        enabled: false
+        qualities:
+        - WEBRip-2160p
+        - WEBDL-2160p
+      - name: HDTV-2160p
+        enabled: false
+      - name: Bluray-1080p Remux
+        enabled: false
+      - name: Bluray-1080p
+        enabled: false
+      - name: WEB 1080p
+        enabled: false
+        qualities:
+        - WEBRip-1080p
+        - WEBDL-1080p
+      - name: Bluray-720p
+        enabled: true
+      - name: WEB 720p
+        enabled: true
+        qualities:
+        - WEBRip-720p
+        - WEBDL-720p
+      - name: Raw-HD
+        enabled: false
+      - name: HDTV-1080p
+        enabled: false
+      - name: HDTV-720p
+        enabled: true
+      - name: Bluray-576p
+        enabled: false
+      - name: Bluray-480p
+        enabled: false
+      - name: DVD
+        enabled: false
+      - name: WEB 480p
+        enabled: false
+        qualities:
+        - WEBRip-480p
+        - WEBDL-480p
+      - name: SDTV
+        enabled: false
+      - name: Unknown
+        enabled: false
+    - name: HD-1080p
+      upgrade:
+        allowed: false
+        until_quality: HDTV-1080p
+      min_format_score: 0
+      qualities:
+      - name: Bluray-2160p Remux
+        enabled: false
+      - name: Bluray-2160p
+        enabled: false
+      - name: WEB 2160p
+        enabled: false
+        qualities:
+        - WEBRip-2160p
+        - WEBDL-2160p
+      - name: HDTV-2160p
+        enabled: false
+      - name: Bluray-1080p Remux
+        enabled: false
+      - name: Bluray-1080p
+        enabled: true
+      - name: WEB 1080p
+        enabled: true
+        qualities:
+        - WEBRip-1080p
+        - WEBDL-1080p
+      - name: Bluray-720p
+        enabled: false
+      - name: WEB 720p
+        enabled: false
+        qualities:
+        - WEBRip-720p
+        - WEBDL-720p
+      - name: Raw-HD
+        enabled: false
+      - name: HDTV-1080p
+        enabled: true
+      - name: HDTV-720p
+        enabled: false
+      - name: Bluray-576p
+        enabled: false
+      - name: Bluray-480p
+        enabled: false
+      - name: DVD
+        enabled: false
+      - name: WEB 480p
+        enabled: false
+        qualities:
+        - WEBRip-480p
+        - WEBDL-480p
+      - name: SDTV
+        enabled: false
+      - name: Unknown
+        enabled: false
+    - name: Ultra-HD
+      upgrade:
+        allowed: false
+        until_quality: HDTV-2160p
+      min_format_score: 0
+      qualities:
+      - name: Bluray-2160p Remux
+        enabled: false
+      - name: Bluray-2160p
+        enabled: true
+      - name: WEB 2160p
+        enabled: true
+        qualities:
+        - WEBRip-2160p
+        - WEBDL-2160p
+      - name: HDTV-2160p
+        enabled: true
+      - name: Bluray-1080p Remux
+        enabled: false
+      - name: Bluray-1080p
+        enabled: false
+      - name: WEB 1080p
+        enabled: false
+        qualities:
+        - WEBRip-1080p
+        - WEBDL-1080p
+      - name: Bluray-720p
+        enabled: false
+      - name: WEB 720p
+        enabled: false
+        qualities:
+        - WEBRip-720p
+        - WEBDL-720p
+      - name: Raw-HD
+        enabled: false
+      - name: HDTV-1080p
+        enabled: false
+      - name: HDTV-720p
+        enabled: false
+      - name: Bluray-576p
+        enabled: false
+      - name: Bluray-480p
+        enabled: false
+      - name: DVD
+        enabled: false
+      - name: WEB 480p
+        enabled: false
+        qualities:
+        - WEBRip-480p
+        - WEBDL-480p
+      - name: SDTV
+        enabled: false
+      - name: Unknown
+        enabled: false
+    - name: HD - 720p/1080p
+      upgrade:
+        allowed: false
+        until_quality: HDTV-720p
+      min_format_score: 0
+      qualities:
+      - name: Bluray-2160p Remux
+        enabled: false
+      - name: Bluray-2160p
+        enabled: false
+      - name: WEB 2160p
+        enabled: false
+        qualities:
+        - WEBRip-2160p
+        - WEBDL-2160p
+      - name: HDTV-2160p
+        enabled: false
+      - name: Bluray-1080p Remux
+        enabled: false
+      - name: Bluray-1080p
+        enabled: true
+      - name: WEB 1080p
+        enabled: true
+        qualities:
+        - WEBRip-1080p
+        - WEBDL-1080p
+      - name: Bluray-720p
+        enabled: true
+      - name: WEB 720p
+        enabled: true
+        qualities:
+        - WEBRip-720p
+        - WEBDL-720p
+      - name: Raw-HD
+        enabled: false
+      - name: HDTV-1080p
+        enabled: true
+      - name: HDTV-720p
+        enabled: true
+      - name: Bluray-576p
+        enabled: false
+      - name: Bluray-480p
+        enabled: false
+      - name: DVD
+        enabled: false
+      - name: WEB 480p
+        enabled: false
+        qualities:
+        - WEBRip-480p
+        - WEBDL-480p
+      - name: SDTV
+        enabled: false
+      - name: Unknown
+        enabled: false
+    quality_definition:
+      type: series
+      qualities:
+      - name: HDTV-720p
+        min: 0
+        preferred: 12
+        max: 20
+      - name: WEBRip-720p
+        min: 0
+        preferred: 12
+        max: 20
+      - name: WEBDL-720p
+        min: 0
+        preferred: 12
+        max: 20
+      - name: Bluray-720p
+        min: 0
+        preferred: 12
+        max: 20
+      - name: HDTV-1080p
+        min: 0
+        preferred: 20
+        max: 35
+      - name: WEBRip-1080p
+        min: 0
+        preferred: 20
+        max: 35
+      - name: WEBDL-1080p
+        min: 0
+        preferred: 20
+        max: 35
+      - name: Bluray-1080p
+        min: 0
+        preferred: 20
+        max: 35
+    custom_formats:
+    - trash_ids:
+      - 85c61753df5da1fb2aab6f2a47426b09
+      assign_scores_to:
+      - name: Any
+        score: -10000
+      - name: SD
+        score: -10000
+      - name: HD-720p
+        score: -10000
+      - name: HD-1080p
+        score: -10000
+      - name: Ultra-HD
+        score: -10000
+      - name: HD - 720p/1080p
+        score: -10000
+radarr:
+  homelab:
+    base_url: http://host.docker.internal:7878
+    api_key: !env_var RADARR_API_KEY
+    quality_profiles:
+    - name: Any
+      upgrade:
+        allowed: false
+        until_quality: Bluray-480p
+      min_format_score: 0
+      qualities:
+      - name: Raw-HD
+        enabled: false
+      - name: BR-DISK
+        enabled: true
+      - name: Remux-2160p
+        enabled: false
+      - name: Bluray-2160p
+        enabled: true
+      - name: WEB 2160p
+        enabled: true
+        qualities:
+        - WEBDL-2160p
+        - WEBRip-2160p
+      - name: HDTV-2160p
+        enabled: true
+      - name: Remux-1080p
+        enabled: false
+      - name: Bluray-1080p
+        enabled: true
+      - name: WEB 1080p
+        enabled: true
+        qualities:
+        - WEBDL-1080p
+        - WEBRip-1080p
+      - name: HDTV-1080p
+        enabled: true
+      - name: Bluray-720p
+        enabled: true
+      - name: WEB 720p
+        enabled: true
+        qualities:
+        - WEBDL-720p
+        - WEBRip-720p
+      - name: HDTV-720p
+        enabled: true
+      - name: Bluray-576p
+        enabled: true
+      - name: Bluray-480p
+        enabled: true
+      - name: WEB 480p
+        enabled: true
+        qualities:
+        - WEBDL-480p
+        - WEBRip-480p
+      - name: DVD-R
+        enabled: true
+      - name: DVD
+        enabled: true
+      - name: SDTV
+        enabled: true
+      - name: DVDSCR
+        enabled: true
+      - name: REGIONAL
+        enabled: true
+      - name: TELECINE
+        enabled: true
+      - name: TELESYNC
+        enabled: true
+      - name: CAM
+        enabled: true
+      - name: WORKPRINT
+        enabled: true
+      - name: Unknown
+        enabled: false
+    - name: SD
+      upgrade:
+        allowed: false
+        until_quality: Bluray-480p
+      min_format_score: 0
+      qualities:
+      - name: Raw-HD
+        enabled: false
+      - name: BR-DISK
+        enabled: false
+      - name: Remux-2160p
+        enabled: false
+      - name: Bluray-2160p
+        enabled: false
+      - name: WEB 2160p
+        enabled: false
+        qualities:
+        - WEBDL-2160p
+        - WEBRip-2160p
+      - name: HDTV-2160p
+        enabled: false
+      - name: Remux-1080p
+        enabled: false
+      - name: Bluray-1080p
+        enabled: false
+      - name: WEB 1080p
+        enabled: false
+        qualities:
+        - WEBDL-1080p
+        - WEBRip-1080p
+      - name: HDTV-1080p
+        enabled: false
+      - name: Bluray-720p
+        enabled: false
+      - name: WEB 720p
+        enabled: false
+        qualities:
+        - WEBDL-720p
+        - WEBRip-720p
+      - name: HDTV-720p
+        enabled: false
+      - name: Bluray-576p
+        enabled: true
+      - name: Bluray-480p
+        enabled: true
+      - name: WEB 480p
+        enabled: true
+        qualities:
+        - WEBDL-480p
+        - WEBRip-480p
+      - name: DVD-R
+        enabled: false
+      - name: DVD
+        enabled: true
+      - name: SDTV
+        enabled: true
+      - name: DVDSCR
+        enabled: true
+      - name: REGIONAL
+        enabled: true
+      - name: TELECINE
+        enabled: true
+      - name: TELESYNC
+        enabled: true
+      - name: CAM
+        enabled: true
+      - name: WORKPRINT
+        enabled: true
+      - name: Unknown
+        enabled: false
+    - name: HD-720p
+      upgrade:
+        allowed: false
+        until_quality: Bluray-720p
+      min_format_score: 0
+      qualities:
+      - name: Raw-HD
+        enabled: false
+      - name: BR-DISK
+        enabled: false
+      - name: Remux-2160p
+        enabled: false
+      - name: Bluray-2160p
+        enabled: false
+      - name: WEB 2160p
+        enabled: false
+        qualities:
+        - WEBDL-2160p
+        - WEBRip-2160p
+      - name: HDTV-2160p
+        enabled: false
+      - name: Remux-1080p
+        enabled: false
+      - name: Bluray-1080p
+        enabled: false
+      - name: WEB 1080p
+        enabled: false
+        qualities:
+        - WEBDL-1080p
+        - WEBRip-1080p
+      - name: HDTV-1080p
+        enabled: false
+      - name: Bluray-720p
+        enabled: true
+      - name: WEB 720p
+        enabled: true
+        qualities:
+        - WEBDL-720p
+        - WEBRip-720p
+      - name: HDTV-720p
+        enabled: true
+      - name: Bluray-576p
+        enabled: false
+      - name: Bluray-480p
+        enabled: false
+      - name: WEB 480p
+        enabled: false
+        qualities:
+        - WEBDL-480p
+        - WEBRip-480p
+      - name: DVD-R
+        enabled: false
+      - name: DVD
+        enabled: false
+      - name: SDTV
+        enabled: false
+      - name: DVDSCR
+        enabled: false
+      - name: REGIONAL
+        enabled: false
+      - name: TELECINE
+        enabled: false
+      - name: TELESYNC
+        enabled: false
+      - name: CAM
+        enabled: false
+      - name: WORKPRINT
+        enabled: false
+      - name: Unknown
+        enabled: false
+    - name: HD-1080p
+      upgrade:
+        allowed: false
+        until_quality: Bluray-1080p
+      min_format_score: 0
+      qualities:
+      - name: Raw-HD
+        enabled: false
+      - name: BR-DISK
+        enabled: false
+      - name: Remux-2160p
+        enabled: false
+      - name: Bluray-2160p
+        enabled: false
+      - name: WEB 2160p
+        enabled: false
+        qualities:
+        - WEBDL-2160p
+        - WEBRip-2160p
+      - name: HDTV-2160p
+        enabled: false
+      - name: Remux-1080p
+        enabled: false
+      - name: Bluray-1080p
+        enabled: true
+      - name: WEB 1080p
+        enabled: true
+        qualities:
+        - WEBDL-1080p
+        - WEBRip-1080p
+      - name: HDTV-1080p
+        enabled: true
+      - name: Bluray-720p
+        enabled: false
+      - name: WEB 720p
+        enabled: false
+        qualities:
+        - WEBDL-720p
+        - WEBRip-720p
+      - name: HDTV-720p
+        enabled: false
+      - name: Bluray-576p
+        enabled: false
+      - name: Bluray-480p
+        enabled: false
+      - name: WEB 480p
+        enabled: false
+        qualities:
+        - WEBDL-480p
+        - WEBRip-480p
+      - name: DVD-R
+        enabled: false
+      - name: DVD
+        enabled: false
+      - name: SDTV
+        enabled: false
+      - name: DVDSCR
+        enabled: false
+      - name: REGIONAL
+        enabled: false
+      - name: TELECINE
+        enabled: false
+      - name: TELESYNC
+        enabled: false
+      - name: CAM
+        enabled: false
+      - name: WORKPRINT
+        enabled: false
+      - name: Unknown
+        enabled: false
+    - name: Ultra-HD
+      upgrade:
+        allowed: false
+        until_quality: Bluray-2160p
+      min_format_score: 0
+      qualities:
+      - name: Raw-HD
+        enabled: false
+      - name: BR-DISK
+        enabled: false
+      - name: Remux-2160p
+        enabled: false
+      - name: Bluray-2160p
+        enabled: true
+      - name: WEB 2160p
+        enabled: true
+        qualities:
+        - WEBDL-2160p
+        - WEBRip-2160p
+      - name: HDTV-2160p
+        enabled: true
+      - name: Remux-1080p
+        enabled: false
+      - name: Bluray-1080p
+        enabled: false
+      - name: WEB 1080p
+        enabled: false
+        qualities:
+        - WEBDL-1080p
+        - WEBRip-1080p
+      - name: HDTV-1080p
+        enabled: false
+      - name: Bluray-720p
+        enabled: false
+      - name: WEB 720p
+        enabled: false
+        qualities:
+        - WEBDL-720p
+        - WEBRip-720p
+      - name: HDTV-720p
+        enabled: false
+      - name: Bluray-576p
+        enabled: false
+      - name: Bluray-480p
+        enabled: false
+      - name: WEB 480p
+        enabled: false
+        qualities:
+        - WEBDL-480p
+        - WEBRip-480p
+      - name: DVD-R
+        enabled: false
+      - name: DVD
+        enabled: false
+      - name: SDTV
+        enabled: false
+      - name: DVDSCR
+        enabled: false
+      - name: REGIONAL
+        enabled: false
+      - name: TELECINE
+        enabled: false
+      - name: TELESYNC
+        enabled: false
+      - name: CAM
+        enabled: false
+      - name: WORKPRINT
+        enabled: false
+      - name: Unknown
+        enabled: false
+    - name: HD - 720p/1080p
+      upgrade:
+        allowed: false
+        until_quality: Bluray-720p
+      min_format_score: 0
+      qualities:
+      - name: Raw-HD
+        enabled: false
+      - name: BR-DISK
+        enabled: false
+      - name: Remux-2160p
+        enabled: false
+      - name: Bluray-2160p
+        enabled: false
+      - name: WEB 2160p
+        enabled: false
+        qualities:
+        - WEBDL-2160p
+        - WEBRip-2160p
+      - name: HDTV-2160p
+        enabled: false
+      - name: Remux-1080p
+        enabled: false
+      - name: Bluray-1080p
+        enabled: true
+      - name: WEB 1080p
+        enabled: true
+        qualities:
+        - WEBDL-1080p
+        - WEBRip-1080p
+      - name: HDTV-1080p
+        enabled: true
+      - name: Bluray-720p
+        enabled: true
+      - name: WEB 720p
+        enabled: true
+        qualities:
+        - WEBDL-720p
+        - WEBRip-720p
+      - name: HDTV-720p
+        enabled: true
+      - name: Bluray-576p
+        enabled: false
+      - name: Bluray-480p
+        enabled: false
+      - name: WEB 480p
+        enabled: false
+        qualities:
+        - WEBDL-480p
+        - WEBRip-480p
+      - name: DVD-R
+        enabled: false
+      - name: DVD
+        enabled: false
+      - name: SDTV
+        enabled: false
+      - name: DVDSCR
+        enabled: false
+      - name: REGIONAL
+        enabled: false
+      - name: TELECINE
+        enabled: false
+      - name: TELESYNC
+        enabled: false
+      - name: CAM
+        enabled: false
+      - name: WORKPRINT
+        enabled: false
+      - name: Unknown
+        enabled: false
+    quality_definition:
+      type: movie
+      qualities:
+      - name: HDTV-720p
+        min: 0
+        preferred: 12
+        max: 20
+      - name: WEBRip-720p
+        min: 0
+        preferred: 12
+        max: 20
+      - name: WEBDL-720p
+        min: 0
+        preferred: 12
+        max: 20
+      - name: Bluray-720p
+        min: 0
+        preferred: 12
+        max: 20
+      - name: HDTV-1080p
+        min: 0
+        preferred: 20
+        max: 35
+      - name: WEBRip-1080p
+        min: 0
+        preferred: 20
+        max: 35
+      - name: WEBDL-1080p
+        min: 0
+        preferred: 20
+        max: 35
+      - name: Bluray-1080p
+        min: 0
+        preferred: 20
+        max: 35
+    custom_formats:
+    - trash_ids:
+      - ed38b889b31be83fda192888e2286d83
+      assign_scores_to:
+      - name: Any
+        score: -10000
+      - name: SD
+        score: -10000
+      - name: HD-720p
+        score: -10000
+      - name: HD-1080p
+        score: -10000
+      - name: Ultra-HD
+        score: -10000
+      - name: HD - 720p/1080p
+        score: -10000
