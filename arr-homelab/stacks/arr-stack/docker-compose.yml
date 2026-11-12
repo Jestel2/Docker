@@ -34,6 +34,7 @@ services:
       VPN_TYPE: openvpn
       HTTPPROXY: 'on'
       VPN_PORT_FORWARDING: ${VPN_PORT_FORWARDING:-off}
+      VPN_PORT_FORWARDING_STATUS_FILE: /gluetun/forwarded_port
       PORT_FORWARD_ONLY: ${PIA_PORT_FORWARD_ONLY:-false}
     networks:
       default: null
