@@ -1,6 +1,6 @@
 # Managed policy: preserve profile names, quality membership, and no upgrades.
 sonarr:
-  homelab:
+  sonarr-homelab:
     base_url: http://host.docker.internal:8989
     api_key: !env_var SONARR_API_KEY
     quality_profiles:
@@ -380,7 +380,7 @@ sonarr:
       - name: HD - 720p/1080p
         score: -10000
 radarr:
-  homelab:
+  radarr-homelab:
     base_url: http://host.docker.internal:7878
     api_key: !env_var RADARR_API_KEY
     quality_profiles:
