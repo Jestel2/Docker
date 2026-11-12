@@ -109,10 +109,19 @@ def recyclarr(preview):
     env = dict(os.environ)
     for app in ('SONARR', 'RADARR'):
         env[f'{app}_API_KEY'] = secret(f'{app}_API_KEY')
-    command = ['docker', 'compose', 'run', '--rm', '-T', '--no-deps', 'recyclarr', 'sync']
+    command = ['docker', 'compose', 'run', '--rm', '-T', '--no-deps', 'recyclarr', 'sync', '--log', 'info']
     if preview:
         command.append('--preview')
     subprocess.run(command, cwd=ROOT, env=env, check=True)
+    if not preview:
+        for app in ('sonarr', 'radarr'):
+            sizes = {x['quality']['name']: x.get('maxSize') for x in arr(app, 'qualitydefinition')}
+            for name, maximum in [('HDTV-720p', 20), ('WEBDL-1080p', 35), ('Bluray-1080p', 35)]:
+                if sizes.get(name) != maximum:
+                    raise RuntimeError(f'{app} quality policy was not applied: {name}')
+            if not any(x['name'] == 'BR-DISK' for x in arr(app, 'customformat')):
+                raise RuntimeError(f'{app} BR-DISK format was not applied')
+        check()
 
 
 def qbittorrent():
@@ -254,4 +263,3 @@ if __name__ == '__main__':
     except (RuntimeError, OSError, ValueError, subprocess.SubprocessError) as exc:
         print(f'{args.action}: {exc}', file=sys.stderr)
         sys.exit(1)
-
