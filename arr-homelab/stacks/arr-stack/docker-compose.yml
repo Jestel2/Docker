@@ -1,4 +1,3 @@
-# Verified live topology, 2026-11-10. Runtime VPN credentials are supplied by the existing secret manager.
 networks:
   default:
     name: arr-stack_default
@@ -29,10 +28,13 @@ services:
       FIREWALL_OUTBOUND_SUBNETS: 10.20.60.0/24
       OPENVPN_PASSWORD: ${PIA_PASS:?managed VPN password required}
       OPENVPN_USER: ${PIA_USER:?managed VPN user required}
-      SERVER_REGIONS: US East
+      SERVER_REGIONS: ${PIA_REGION:-US East}
       TZ: America/New_York
       VPN_SERVICE_PROVIDER: pia
       VPN_TYPE: openvpn
+      HTTPPROXY: 'on'
+      VPN_PORT_FORWARDING: ${VPN_PORT_FORWARDING:-off}
+      PORT_FORWARD_ONLY: ${PIA_PORT_FORWARD_ONLY:-false}
     networks:
       default: null
     volumes:
@@ -46,24 +48,12 @@ services:
       published: '8080'
       protocol: tcp
     - mode: ingress
-      target: 8989
-      published: '8989'
-      protocol: tcp
-    - mode: ingress
       target: 9898
       published: '9898'
       protocol: tcp
     - mode: ingress
-      target: 7878
-      published: '7878'
-      protocol: tcp
-    - mode: ingress
       target: 7879
       published: '7879'
-      protocol: tcp
-    - mode: ingress
-      target: 9696
-      published: '9696'
       protocol: tcp
     - mode: ingress
       target: 9697
@@ -73,10 +63,6 @@ services:
       target: 8191
       published: '8191'
       protocol: tcp
-    - mode: ingress
-      target: 5055
-      published: '5055'
-      protocol: tcp
     image: qmcgaw/gluetun@sha256:75df789dea20551fa973f808133a712700bf198518f9d49ed581287777508556
   prowlarr:
     restart: unless-stopped
@@ -85,17 +71,16 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: America/New_York
-    network_mode: service:gluetun
     volumes:
     - type: bind
       source: /opt/docker-stacks/arr-stack/config/prowlarr
       target: /config
       bind: {}
-    depends_on:
-      gluetun:
-        condition: service_healthy
-        required: true
     image: lscr.io/linuxserver/prowlarr@sha256:431d7efebcef466e56adaa40a7a2fa2b0e85159a037b8bf465eaadbf0cf5bedf
+    networks:
+      default: null
+    ports:
+    - 9696:9696
   qbittorrent:
     restart: unless-stopped
     container_name: qbittorrent
@@ -130,7 +115,6 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: America/New_York
-    network_mode: service:gluetun
     volumes:
     - type: bind
       source: /mnt/Jestertek
@@ -148,11 +132,11 @@ services:
       source: /mnt/Media/Videos
       target: /movies
       bind: {}
-    depends_on:
-      gluetun:
-        condition: service_healthy
-        required: true
     image: lscr.io/linuxserver/radarr@sha256:51a9ac2a9eb47afc833541e5fd6c11b86eb9f810694c22fa2429e3078e9194b2
+    networks:
+      default: null
+    ports:
+    - 7878:7878
   seerr:
     restart: unless-stopped
     container_name: seerr
@@ -162,7 +146,6 @@ services:
       LOG_LEVEL: info
       TZ: America/New_York
     init: true
-    network_mode: service:gluetun
     security_opt:
     - no-new-privileges
     volumes:
@@ -170,10 +153,6 @@ services:
       source: /opt/docker-stacks/arr-stack/config/seerr
       target: /app/config
       bind: {}
-    depends_on:
-      gluetun:
-        condition: service_healthy
-        required: true
     healthcheck:
       test:
       - CMD
@@ -187,6 +166,10 @@ services:
       retries: 3
       start_period: 20s
     image: ghcr.io/seerr-team/seerr@sha256:aadee014b40e28cf9aa4928bc9d1183a6eb08f8c44d543cddc9efdcb16549be2
+    networks:
+      default: null
+    ports:
+    - 5055:5055
   sonarr:
     restart: unless-stopped
     container_name: sonarr
@@ -194,7 +177,6 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: America/New_York
-    network_mode: service:gluetun
     volumes:
     - type: bind
       source: /mnt/Jestertek
@@ -215,9 +197,41 @@ services:
     - type: bind
       source: /mnt/Media/TV Shows
       target: /data/TV Shows
-    depends_on:
-      gluetun:
-        condition: service_healthy
-        required: true
     image: lscr.io/linuxserver/sonarr@sha256:673dc4609a5672bc8e46069c86ffcea283a86b48d34a6c93d8da8c24a1b87571
+    networks:
+      default: null
+    ports:
+    - 8989:8989
+  cleanuparr:
+    image: ghcr.io/cleanuparr/cleanuparr@sha256:1898c3219e7e7ecaf9fcb8474691b6d67d56d0798b01b85690975bae14df11b5
+    container_name: cleanuparr
+    restart: unless-stopped
+    environment:
+      PORT: '11011'
+      TZ: America/New_York
+    ports:
+    - 127.0.0.1:11011:11011
+    networks:
+      default: null
+    volumes:
+    - type: bind
+      source: /opt/docker-stacks/arr-stack/config/cleanuparr
+      target: /config
+  recyclarr:
+    image: ghcr.io/recyclarr/recyclarr@sha256:3e9c41b9ec29bbf65fe846864058730d321a21f7695d8c0d9437b73e34d50ad9
+    profiles:
+    - maintenance
+    user: 1000:1000
+    network_mode: bridge
+    extra_hosts:
+    - host.docker.internal:host-gateway
+    environment:
+      TZ: America/New_York
+      SONARR_API_KEY: ${SONARR_API_KEY:-}
+      RADARR_API_KEY: ${RADARR_API_KEY:-}
+    volumes:
+    - type: bind
+      source: /opt/docker-stacks/arr-stack/config/recyclarr
+      target: /config
 name: arr-stack
+x-rollout: '2026-11-12: management network isolation; secrets remain in 1Password'
