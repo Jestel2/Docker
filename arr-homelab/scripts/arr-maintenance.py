@@ -137,8 +137,13 @@ def qbittorrent(base='http://127.0.0.1:8080'):
     req = urllib.request.Request(base + '/api/v2/auth/login', data=data,
                                  headers={'Referer': base})
     with opener.open(req, timeout=20) as response:
-        if response.read() != b'Ok.':
+        # Current qBittorrent returns 204 with a session cookie; older versions
+        # return 200 with "Ok.". Verify the protected API before trusting either.
+        body = response.read()
+        if not (response.status == 204 or (response.status == 200 and body == b'Ok.')):
             raise RuntimeError('Managed qBittorrent authentication rejected')
+    if not isinstance(http(base + '/api/v2/app/preferences', opener=opener), dict):
+        raise RuntimeError('Managed qBittorrent session verification failed')
     return base, opener
 
 

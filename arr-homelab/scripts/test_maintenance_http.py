@@ -7,6 +7,7 @@ import threading
 import unittest
 from unittest.mock import patch
 import urllib.parse
+import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -30,6 +31,11 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(raw)
 
     def do_GET(self):
+        if self.path == '/api/v2/app/preferences' and self.headers.get('Cookie') != 'testSession=present':
+            self.send_response(403)
+            self.send_header('Content-Length', '0')
+            self.end_headers()
+            return
         self.reply({'cookie': self.headers.get('Cookie')}, cookie=True)
 
     def do_POST(self):
@@ -38,10 +44,11 @@ class Handler(BaseHTTPRequestHandler):
                 self.rfile.read(int(self.headers['Content-Length'])).decode())
             accepted = self.server.login_body == {
                 'username': ['admin'], 'password': ['test-managed-password']}
-            raw = b'Ok.' if accepted else b'Fails.'
-            self.send_response(200)
+            status = getattr(self.server, 'login_status', 200) if accepted else 200
+            raw = (b'' if status == 204 else b'Ok.') if accepted else b'Fails.'
+            self.send_response(status)
             self.send_header('Content-Length', str(len(raw)))
-            if accepted:
+            if accepted and getattr(self.server, 'include_login_cookie', True):
                 self.send_header('Set-Cookie', 'testSession=present; Path=/')
             self.end_headers()
             self.wfile.write(raw)
@@ -57,15 +64,24 @@ class HttpIntegrationTest(unittest.TestCase):
         thread.start()
         base = f'http://127.0.0.1:{server.server_port}'
         try:
-            with patch.object(maintenance, 'secret', return_value='test-managed-password') as secret:
-                endpoint, opener = maintenance.qbittorrent(base)
-                secret.assert_called_once_with('QBITTORRENT_WEBUI_PASSWORD')
-            self.assertEqual(endpoint, base)
-            self.assertEqual(maintenance.http(base, opener=opener),
-                             {'cookie': 'testSession=present'})
+            for status in (200, 204):
+                with self.subTest(login_status=status):
+                    server.login_status = status
+                    with patch.object(maintenance, 'secret', return_value='test-managed-password') as secret:
+                        endpoint, opener = maintenance.qbittorrent(base)
+                        secret.assert_called_once_with('QBITTORRENT_WEBUI_PASSWORD')
+                    self.assertEqual(endpoint, base)
+                    self.assertEqual(maintenance.http(base, opener=opener),
+                                     {'cookie': 'testSession=present'})
             with patch.object(maintenance, 'secret', return_value='incorrect-password'):
                 with self.assertRaisesRegex(RuntimeError, 'authentication rejected'):
                     maintenance.qbittorrent(base)
+            server.login_status = 204
+            server.include_login_cookie = False
+            with patch.object(maintenance, 'secret', return_value='test-managed-password'):
+                with self.assertRaises(urllib.error.HTTPError) as rejected:
+                    maintenance.qbittorrent(base)
+                self.assertEqual(rejected.exception.code, 403)
         finally:
             server.shutdown()
             server.server_close()
