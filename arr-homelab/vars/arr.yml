@@ -52,8 +52,8 @@ optimization:
   failed_sources_disabled: [Uindex, Magnet Cat]
   vpn_port_forwarding: off
   forwarding_candidate_region: CA Montreal
-  forwarding_status: pending managed downloader credential and reachability validation
-  cleanup_status: pending managed credentials; automation inactive
+  forwarding_status: pending correction of managed downloader password and reachability validation
+  cleanup_status: fields readable; downloader authentication mismatch; automation inactive
 
 integration_secrets_required:
   QBITTORRENT_WEBUI_PASSWORD: op://JesterTek/ARR Stack/QBITTORRENT_WEBUI_PASSWORD
