@@ -195,8 +195,8 @@ def cleanup(live):
     call('configuration/download_client' + (f'/{client["id"]}' if client else ''), 'PUT' if client else 'POST', payload)
     call('configuration/download_client/test', 'POST', payload)
     queue = call('configuration/queue_cleaner')
-    queue.update(enabled=True, cronExpression='0 0/15 * * * ?', downloadingMetadataMaxStrikes=96,
-                 processNoContentId=False, failedImport={'maxStrikes': 0}, errored={'maxStrikes': 96})
+    queue.update(enabled=True, cronExpression='0 0/15 * * * ?', downloadingMetadataMaxStrikes=0,
+                 processNoContentId=False, failedImport={'maxStrikes': 0}, errored={'maxStrikes': 96, 'ignorePrivate': True, 'deletePrivate': False})
     for rule in call('queue-rules/stall'):
         rule['enabled'] = False
         call(f'queue-rules/stall/{rule["id"]}', 'PUT', rule)
