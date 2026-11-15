@@ -58,6 +58,17 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class HttpIntegrationTest(unittest.TestCase):
+    def test_vault_rate_limit_fails_closed_without_exposing_cli_output(self):
+        from types import SimpleNamespace
+        with patch.object(maintenance, 'KEYS', {}), \
+             patch.object(maintenance.Path, 'read_text', return_value='synthetic-service-token'), \
+             patch.dict(maintenance.os.environ), \
+             patch.object(maintenance.subprocess, 'run', return_value=SimpleNamespace(
+                 returncode=1, stdout='', stderr='Too many requests: synthetic-private-detail')):
+            with self.assertRaisesRegex(RuntimeError, '^1Password rate limit reached; managed credential read deferred$'):
+                maintenance.secret('QBITTORRENT_WEBUI_PASSWORD')
+            self.assertEqual(maintenance.KEYS, {})
+
     def test_managed_downloader_login_and_session(self):
         server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
         thread = threading.Thread(target=server.serve_forever, daemon=True)

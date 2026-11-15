@@ -30,6 +30,11 @@ def secret(field):
         result = subprocess.run(['op', 'read', f'op://JesterTek/ARR Stack/{field}'],
                                 capture_output=True, text=True, timeout=25)
         if result.returncode or not result.stdout.strip():
+            # CLI errors may include identifiers or sensitive material. Classify
+            # the observed quota failure without logging the raw error, token,
+            # or field value. Authentication still fails closed.
+            if 'rate-limit' in result.stderr.lower() or 'too many requests' in result.stderr.lower():
+                raise RuntimeError('1Password rate limit reached; managed credential read deferred')
             raise RuntimeError(f'Managed field unavailable: {field}')
         KEYS[field] = result.stdout.strip()
     return KEYS[field]
