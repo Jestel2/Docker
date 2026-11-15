@@ -3,7 +3,12 @@ Description=Keep the qBittorrent listening port aligned with PIA
 
 [Timer]
 OnBootSec=90
-OnUnitActiveSec=60
+# Each invocation authenticates against the managed vault. Minute polling was
+# still issuing reads after 1Password rejected them with a rate-limit error.
+# A changed VPN port is synchronized within fifteen minutes; outbound P2P
+# remains available during that interval through the existing VPN kill switch.
+OnUnitActiveSec=15min
+RandomizedDelaySec=30s
 Unit=arr-qbit-port-sync.service
 
 [Install]
